@@ -2,10 +2,28 @@ package com.venus.meditrace.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// ── Figma Palette ─────────────────────────────────────────────────────────
+// Dark forest green — top bar, card backgrounds
+val MediDarkGreen   = Color(0xFF1B3A2A)
+// Medium green — main screen background
+val MediMedGreen    = Color(0xFF2D6040)
+// Lighter green — blob/decorative shapes
+val MediBlobGreen   = Color(0xFF3D7A52)
+// Button green — FAB and primary CTAs
+val MediButtonGreen = Color(0xFF1B3A2A)
+// Success / verified accent
+val MediAccentGreen = Color(0xFF4CAF6E)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Text
+val White           = Color(0xFFFFFFFF)
+val WhiteAlpha70    = Color(0xB3FFFFFF)
+val WhiteAlpha40    = Color(0x66FFFFFF)
+
+// Error / Not Found
+val ErrorRed        = Color(0xFFD32F2F)
+val ErrorRedLight   = Color(0xFFFFEBEB)
+
+// Neutral
+val LightGray       = Color(0xFFF5F5F5)
+val BorderGray      = Color(0xFFE0E0E0)
+val TextGray        = Color(0xFF757575)
