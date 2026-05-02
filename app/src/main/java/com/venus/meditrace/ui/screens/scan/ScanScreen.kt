@@ -30,6 +30,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.zxing.*
 import com.google.zxing.common.HybridBinarizer
+import com.venus.meditrace.data.model.VerificationResult
 import com.venus.meditrace.ui.theme.*
 import com.venus.meditrace.viewmodel.ScanUiState
 import com.venus.meditrace.viewmodel.ScanViewModel
@@ -46,8 +47,9 @@ fun ScanScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val cameraPermission = rememberPermissionState(android.Manifest.permission.CAMERA)
 
-    // React to state changes from ViewModel
+    // React to state changes
     LaunchedEffect(uiState) {
         when (uiState) {
             is ScanUiState.Verified -> onVerified()
@@ -56,28 +58,23 @@ fun ScanScreen(
         }
     }
 
-    val cameraPermission = rememberPermissionState(android.Manifest.permission.CAMERA)
-
-    // Request permission if not granted
     LaunchedEffect(Unit) {
         if (!cameraPermission.status.isGranted) {
             cameraPermission.launchPermissionRequest()
         }
     }
 
-    // ── Layout — light background as per Figma Scan screen ────────────────
     Column(
         modifier            = Modifier
             .fillMaxSize()
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        // ── Top bar (simple — no pill shape on scan screen per Figma) ──────
+        // ── Top bar ───────────────────────────────────────────────────────
         Row(
-            modifier = Modifier
+            modifier          = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 14.dp),
+                .padding(horizontal = 8.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -85,7 +82,7 @@ fun ScanScreen(
                     imageVector        = Icons.Default.ArrowBackIosNew,
                     contentDescription = "Back",
                     tint               = MediDarkGreen,
-                    modifier           = Modifier.size(22.dp)
+                    modifier           = Modifier.size(20.dp)
                 )
             }
             Text(
@@ -97,121 +94,164 @@ fun ScanScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // ── Camera viewfinder ─────────────────────────────────────────────
-        if (cameraPermission.status.isGranted) {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(2.dp, MediDarkGreen, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                CameraPreview(onQrDetected = { rawQr -> viewModel.onQrDetected(rawQr) })
-
-                // QR alignment guide overlay
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 28.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(16.dp))
+                .border(2.dp, Color(0xFFBDBDBD), RoundedCornerShape(16.dp))
+                .background(Color(0xFFF5F5F5)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (cameraPermission.status.isGranted) {
+                CameraPreview(onQrDetected = { viewModel.onQrDetected(it) })
+                // Green alignment guide
                 Box(
                     modifier = Modifier
-                        .size(180.dp)
+                        .size(175.dp)
                         .border(3.dp, MediAccentGreen, RoundedCornerShape(12.dp))
                 )
-            }
-        } else {
-            // Permission denied state
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 32.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF0F0F0)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Camera permission required", color = TextGray, textAlign = TextAlign.Center)
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier            = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text      = "Camera permission is required to scan QR codes",
+                        color     = TextGray,
+                        textAlign = TextAlign.Center
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
                         onClick = { cameraPermission.launchPermissionRequest() },
                         colors  = ButtonDefaults.buttonColors(containerColor = MediDarkGreen)
-                    ) { Text("Grant Permission") }
+                    ) { Text("Grant Permission", color = White) }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // ── Instruction text ──────────────────────────────────────────────
         Text(
-            text       = "Point your camera to the QR Code on the product",
-            fontSize   = 14.sp,
-            color      = TextGray,
-            textAlign  = TextAlign.Center,
-            modifier   = Modifier.padding(horizontal = 40.dp)
+            text      = "Point your camera to the QR Code on the product",
+            fontSize  = 13.sp,
+            color     = TextGray,
+            textAlign = TextAlign.Center,
+            modifier  = Modifier.padding(horizontal = 48.dp)
         )
+
+        // ── Loading indicator ─────────────────────────────────────────────
+        if (uiState is ScanUiState.Loading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator(color = MediDarkGreen)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Verifying product...", color = TextGray, fontSize = 13.sp)
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // ── Loading indicator (while API call in progress) ─────────────────
-        if (uiState is ScanUiState.Loading) {
-            CircularProgressIndicator(color = MediDarkGreen)
-            Spacer(modifier = Modifier.height(16.dp))
+        // ── DEMO buttons — lets you see all screens without a real QR ─────
+        // Remove these once the backend is live
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text      = "── Demo Navigation ──",
+                color     = TextGray,
+                fontSize  = 11.sp,
+                textAlign = TextAlign.Center
+            )
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Simulate a VALID scan result
+                Button(
+                    onClick = {
+                        viewModel.setMockResult(
+                            VerificationResult(
+                                status          = "VALID",
+                                productName     = "Amoxicillin 500mg",
+                                manufacturer    = "PharmaCo Kenya Ltd.",
+                                retailer        = "Nairobi Pharmacy",
+                                storeLocation   = "Westlands, Nairobi",
+                                productId       = "PC-AMX-001",
+                                batchNumber     = "AMX-B001-2025",
+                                activeIngredient = "Amoxicillin Trihydrate",
+                                strength        = "500mg",
+                                expiryDate      = "2027-06-30",
+                                ppbRegNumber    = "PPB/NOM/2021/001",
+                                message         = null
+                            )
+                        )
+                    },
+                    colors   = ButtonDefaults.buttonColors(containerColor = MediAccentGreen),
+                    shape    = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f).height(40.dp)
+                ) { Text("✓ Valid", color = White, fontSize = 12.sp) }
+
+                // Simulate NOT FOUND
+                Button(
+                    onClick  = { viewModel.setNotFound() },
+                    colors   = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                    shape    = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f).height(40.dp)
+                ) { Text("✗ Not Found", color = White, fontSize = 12.sp) }
+            }
         }
 
-        // ── Green circular button (Figma bottom element) ───────────────────
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ── Green circle button (Figma decorative element) ─────────────────
         Box(
-            modifier            = Modifier
-                .padding(bottom = 40.dp)
-                .size(64.dp)
+            modifier         = Modifier
+                .padding(bottom = 36.dp)
+                .size(60.dp)
                 .clip(CircleShape)
                 .background(MediDarkGreen),
-            contentAlignment    = Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
-            // Decorative inner circle — visual-only per Figma
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(MediBlobGreen)
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-// ── CameraX preview + ZXing QR analyzer ──────────────────────────────────
-
+// ── CameraX Preview ───────────────────────────────────────────────────────
 @Composable
 private fun CameraPreview(onQrDetected: (String) -> Unit) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
 
-    DisposableEffect(Unit) {
-        onDispose { executor.shutdown() }
-    }
+    DisposableEffect(Unit) { onDispose { executor.shutdown() } }
 
     AndroidView(
         factory = { ctx ->
-            val previewView = PreviewView(ctx)
+            val previewView          = PreviewView(ctx)
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
-
-                val preview = Preview.Builder().build().also {
+                val preview        = Preview.Builder().build().also {
                     it.surfaceProvider = previewView.surfaceProvider
                 }
-
                 val imageAnalyzer = ImageAnalysis.Builder()
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
-                    .also { analysis ->
-                        analysis.setAnalyzer(executor, QrCodeAnalyzer(onQrDetected))
-                    }
+                    .also { it.setAnalyzer(executor, QrCodeAnalyzer(onQrDetected)) }
 
                 try {
                     cameraProvider.unbindAll()
@@ -222,10 +262,9 @@ private fun CameraPreview(onQrDetected: (String) -> Unit) {
                         imageAnalyzer
                     )
                 } catch (e: Exception) {
-                    Log.e("ScanScreen", "CameraX binding failed", e)
+                    Log.e("ScanScreen", "Camera bind failed", e)
                 }
             }, ContextCompat.getMainExecutor(ctx))
-
             previewView
         },
         modifier = Modifier.fillMaxSize()
@@ -233,7 +272,6 @@ private fun CameraPreview(onQrDetected: (String) -> Unit) {
 }
 
 // ── ZXing QR analyzer ─────────────────────────────────────────────────────
-
 private class QrCodeAnalyzer(
     private val onQrDetected: (String) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -245,16 +283,13 @@ private class QrCodeAnalyzer(
     override fun analyze(image: ImageProxy) {
         val buffer: ByteBuffer = image.planes[0].buffer
         val bytes              = ByteArray(buffer.remaining()).also { buffer.get(it) }
-        val width              = image.width
-        val height             = image.height
-        val source             = PlanarYUVLuminanceSource(bytes, width, height, 0, 0, width, height, false)
-        val bitmap             = BinaryBitmap(HybridBinarizer(source))
-
+        val source             = PlanarYUVLuminanceSource(
+            bytes, image.width, image.height, 0, 0, image.width, image.height, false
+        )
         try {
-            val result = reader.decode(bitmap)
-            onQrDetected(result.text)
+            onQrDetected(reader.decode(BinaryBitmap(HybridBinarizer(source))).text)
         } catch (_: NotFoundException) {
-            // No QR found in this frame — silently continue
+            // No QR in this frame — continue
         } finally {
             image.close()
         }

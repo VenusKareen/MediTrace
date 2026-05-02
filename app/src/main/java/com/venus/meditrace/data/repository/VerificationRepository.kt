@@ -9,31 +9,19 @@ import com.venus.meditrace.util.Resource
 
 class VerificationRepository(private val api: ApiService) {
 
-    /**
-     * Verify product using batchId + HMAC signature from scanned QR code.
-     */
     suspend fun verifyProduct(batchId: String, signature: String): Resource<VerificationResult> {
         return try {
             val response = api.verifyProduct(batchId, signature)
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
             } else {
-                Resource.Error("Unable to verify product. Please try again.")
+                Resource.Error("Unable to verify product.")
             }
         } catch (e: Exception) {
             Resource.Error("Network error: ${e.localizedMessage ?: "Check your connection."}")
         }
     }
 
-    /**
-     * Parse a raw QR string into (batchId, signature).
-     *
-     * Supports two formats:
-     *   1. Full URL  — https://meditrace.ke/api/verify/{batchId}?sig={signature}
-     *   2. Compact   — {batchId}:{signature}
-     *
-     * Returns null if the QR cannot be parsed (→ show Not Found screen).
-     */
     fun parseQrCode(rawQr: String): Pair<String, String>? {
         return try {
             when {
@@ -54,9 +42,6 @@ class VerificationRepository(private val api: ApiService) {
         }
     }
 
-    /**
-     * Report a suspicious / counterfeit product.
-     */
     suspend fun reportProduct(
         pharmacyName: String,
         location: String,
@@ -66,16 +51,16 @@ class VerificationRepository(private val api: ApiService) {
         return try {
             val response = api.reportProduct(
                 ReportRequest(
-                    pharmacyName   = pharmacyName.trim(),
-                    location       = location.trim(),
-                    medicationName = medicationName.trim(),
+                    pharmacyName   = pharmacyName,
+                    location       = location,
+                    medicationName = medicationName,
                     batchId        = batchId
                 )
             )
             if (response.isSuccessful && response.body() != null) {
                 Resource.Success(response.body()!!)
             } else {
-                Resource.Error("Failed to submit report. Please try again.")
+                Resource.Error("Failed to submit report.")
             }
         } catch (e: Exception) {
             Resource.Error("Network error: ${e.localizedMessage}")

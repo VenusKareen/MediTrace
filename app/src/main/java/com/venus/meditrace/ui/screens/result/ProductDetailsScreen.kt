@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,9 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.venus.meditrace.data.model.VerificationResult
 import com.venus.meditrace.ui.components.GreenBlobBackground
 import com.venus.meditrace.ui.components.MediTraceTopBar
 import com.venus.meditrace.ui.theme.*
@@ -35,7 +36,7 @@ fun ProductDetailsScreen(
 
     GreenBlobBackground {
         Column(
-            modifier            = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -43,22 +44,30 @@ fun ProductDetailsScreen(
             // ── Top Bar ──────────────────────────────────────────────────
             MediTraceTopBar(showBack = true, onBack = onBack)
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Verified illustration + checkmark ─────────────────────────
+            // ── Illustration area — checkmark + person figure ─────────────
             Box(
                 modifier         = Modifier
-                    .size(110.dp)
+                    .size(130.dp)
                     .clip(CircleShape)
-                    .background(MediDarkGreen),
+                    .background(MediDarkGreen.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector        = Icons.Default.CheckCircle,
-                    contentDescription = "Verified",
-                    tint               = MediAccentGreen,
-                    modifier           = Modifier.size(60.dp)
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector        = Icons.Default.CheckCircle,
+                        contentDescription = "Verified",
+                        tint               = MediAccentGreen,
+                        modifier           = Modifier.size(48.dp)
+                    )
+                    Icon(
+                        imageVector        = Icons.Default.Person,
+                        contentDescription = null,
+                        tint               = White,
+                        modifier           = Modifier.size(36.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -67,7 +76,8 @@ fun ProductDetailsScreen(
                 text       = "Medication Verified",
                 color      = White,
                 fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                textAlign  = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -84,22 +94,23 @@ fun ProductDetailsScreen(
                 Text(
                     text       = "Product Details",
                     color      = White,
-                    fontSize   = 16.sp,
+                    fontSize   = 15.sp,
                     fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center,
                     modifier   = Modifier
+                        .fillMaxWidth()
                         .padding(bottom = 16.dp)
-                        .align(Alignment.CenterHorizontally)
                 )
 
-                DetailRow("Manufacturer",  result.manufacturer  ?: "N/A")
-                DetailRow("Retailer",      result.retailer       ?: "N/A")
-                DetailRow("Store Location",result.storeLocation  ?: "N/A")
-                DetailRow("Product ID",    result.productId      ?: "N/A")
-                DetailRow("Batch",         result.batchNumber    ?: "N/A")
-                DetailRow("Name",          result.productName    ?: "N/A")
-                DetailRow("Strength",      result.strength       ?: "N/A")
-                DetailRow("Expiry Date",   result.expiryDate     ?: "N/A")
-                DetailRow("PPB Reg. No.",  result.ppbRegNumber   ?: "N/A")
+                DetailRow("Manufacturer",   result.manufacturer   ?: "N/A")
+                DetailRow("Retailer",       result.retailer        ?: "N/A")
+                DetailRow("Store Location", result.storeLocation   ?: "N/A")
+                DetailRow("Product ID",     result.productId       ?: "N/A")
+                DetailRow("Batch",          result.batchNumber     ?: "N/A")
+                DetailRow("Name",           result.productName     ?: "N/A")
+                DetailRow("Strength",       result.strength        ?: "N/A")
+                DetailRow("Expiry Date",    result.expiryDate      ?: "N/A")
+                DetailRow("PPB Reg. No.",   result.ppbRegNumber    ?: "N/A")
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -110,27 +121,24 @@ fun ProductDetailsScreen(
 @Composable
 private fun DetailRow(label: String, value: String) {
     Row(
-        modifier = Modifier
+        modifier              = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text       = "$label:",
             color      = WhiteAlpha70,
             fontSize   = 13.sp,
-            fontWeight = FontWeight.Medium,
-            modifier   = Modifier.weight(1f)
+            fontWeight = FontWeight.SemiBold,
+            modifier   = Modifier.weight(1.1f)
         )
         Text(
             text     = value,
             color    = White,
             fontSize = 13.sp,
-            modifier = Modifier.weight(1.2f)
+            modifier = Modifier.weight(1.3f)
         )
     }
-    HorizontalDivider(
-        color     = WhiteAlpha40,
-        thickness = 0.5.dp
-    )
+    HorizontalDivider(color = WhiteAlpha40, thickness = 0.5.dp)
 }

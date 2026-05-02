@@ -5,15 +5,15 @@ plugins {
 }
 
 android {
-    namespace = "com.venus.meditrace"
+    namespace  = "com.venus.meditrace"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.venus.meditrace"
-        minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        applicationId   = "com.venus.meditrace"
+        minSdk          = 26
+        targetSdk       = 35
+        versionCode     = 1
+        versionName     = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BASE_URL", "\"https://meditrace.ke/api/\"")
     }
@@ -21,12 +21,11 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
-            // Point to local emulator backend during development
             buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled    = true
+            isShrinkResources  = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,7 +44,7 @@ android {
     }
 
     buildFeatures {
-        compose = true
+        compose     = true
         buildConfig = true
     }
 }
@@ -70,7 +69,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Retrofit + Gson
+    // Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging.interceptor)
@@ -88,10 +87,10 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
-    // ZXing core (QR decode — used with CameraX ImageAnalysis)
+    // ZXing QR decode
     implementation(libs.zxing.core)
 
-    // Accompanist permissions
+    // Permissions
     implementation(libs.accompanist.permissions)
 
     // Testing

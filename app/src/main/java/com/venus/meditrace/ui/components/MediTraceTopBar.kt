@@ -18,18 +18,11 @@ import androidx.compose.ui.unit.sp
 import com.venus.meditrace.ui.theme.MediDarkGreen
 import com.venus.meditrace.ui.theme.White
 
-/**
- * The pill-shaped "MEDI-TRACE" top bar from the Figma.
- *
- * @param showBack  true → show back arrow (Product / Report screens)
- *                  false → show hamburger menu (Home screen)
- * @param title     custom title override (e.g. "Report Suspicious Product")
- */
 @Composable
 fun MediTraceTopBar(
-    showBack: Boolean  = false,
-    title: String      = "MEDI-TRACE",
-    onBack: (() -> Unit)? = null,
+    title: String          = "MEDI-TRACE",
+    showBack: Boolean      = false,
+    onBack: (() -> Unit)?  = null,
     onMenuClick: (() -> Unit)? = null
 ) {
     Box(
@@ -38,22 +31,18 @@ fun MediTraceTopBar(
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .clip(RoundedCornerShape(50.dp))
             .background(MediDarkGreen)
-            .padding(horizontal = 8.dp, vertical = 14.dp),
+            .padding(vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         // Leading icon
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp)
-        ) {
+        Box(modifier = Modifier.align(Alignment.CenterStart)) {
             if (showBack) {
                 IconButton(onClick = { onBack?.invoke() }) {
                     Icon(
                         imageVector        = Icons.Default.ArrowBackIosNew,
                         contentDescription = "Back",
                         tint               = White,
-                        modifier           = Modifier.size(20.dp)
+                        modifier           = Modifier.size(18.dp)
                     )
                 }
             } else {
@@ -68,15 +57,15 @@ fun MediTraceTopBar(
             }
         }
 
-        // Centered title
+        // Title — always centered
         Text(
-            text       = title,
-            color      = White,
-            fontSize   = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center,
-            letterSpacing = 1.5.sp,
-            modifier   = Modifier.align(Alignment.Center)
+            text          = title,
+            color         = White,
+            fontSize      = 17.sp,
+            fontWeight    = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            textAlign     = TextAlign.Center,
+            modifier      = Modifier.align(Alignment.Center)
         )
     }
 }

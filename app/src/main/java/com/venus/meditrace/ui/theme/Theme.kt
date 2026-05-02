@@ -10,20 +10,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val MediTraceLightColors = lightColorScheme(
-    primary            = MediDarkGreen,
-    onPrimary          = White,
-    primaryContainer   = MediBlobGreen,
-    onPrimaryContainer = White,
-    secondary          = MediMedGreen,
-    onSecondary        = White,
-    background         = MediMedGreen,
-    onBackground       = White,
-    surface            = White,
-    onSurface          = MediDarkGreen,
-    surfaceVariant     = LightGray,
-    onSurfaceVariant   = TextGray,
-    error              = ErrorRed,
-    onError            = White
+    primary          = MediDarkGreen,
+    onPrimary        = White,
+    background       = MediMedGreen,
+    onBackground     = White,
+    surface          = White,
+    onSurface        = MediDarkGreen,
+    error            = ErrorRed,
+    onError          = White
 )
 
 @Composable

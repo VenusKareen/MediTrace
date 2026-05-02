@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed class ScanUiState {
-    object Idle        : ScanUiState()
-    object Scanning    : ScanUiState()   // camera active, waiting for QR
-    object Loading     : ScanUiState()   // API call in progress
+    object Idle      : ScanUiState()
+    object Scanning  : ScanUiState()
+    object Loading   : ScanUiState()
     data class Verified(val result: VerificationResult) : ScanUiState()
-    data class NotFound(val rawQr: String)              : ScanUiState()
+    data class NotFound(val rawQr: String = "")         : ScanUiState()
     data class Error(val message: String)               : ScanUiState()
 }
 
@@ -29,24 +29,19 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
     val uiState: StateFlow<ScanUiState> = _uiState.asStateFlow()
 
-    // Debounce: ignore duplicate QR reads
     private var lastScannedQr: String? = null
 
     fun startScanning() {
         _uiState.update { ScanUiState.Scanning }
     }
 
-    /**
-     * Triggered by the CameraX QR analyzer when a QR code is detected.
-     */
+    // Called by ZXing when a real QR is detected
     fun onQrDetected(rawQr: String) {
         if (rawQr == lastScannedQr) return
         lastScannedQr = rawQr
 
         val parsed = repo.parseQrCode(rawQr)
-
         if (parsed == null) {
-            // QR was readable but not a MediTrace format
             _uiState.update { ScanUiState.NotFound(rawQr) }
             return
         }
@@ -60,6 +55,18 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
                 Resource.Loading    -> Unit
             }
         }
+    }
+
+    // ── Demo / mock methods — used for presentation without backend ────────
+
+    /** Simulates a successful VALID scan result for demo purposes */
+    fun setMockResult(result: VerificationResult) {
+        _uiState.update { ScanUiState.Verified(result) }
+    }
+
+    /** Simulates a NOT FOUND result for demo purposes */
+    fun setNotFound() {
+        _uiState.update { ScanUiState.NotFound("DEMO-QR") }
     }
 
     fun reset() {

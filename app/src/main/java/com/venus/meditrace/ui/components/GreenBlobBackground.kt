@@ -10,35 +10,34 @@ import androidx.compose.ui.geometry.Offset
 import com.venus.meditrace.ui.theme.MediBlobGreen
 import com.venus.meditrace.ui.theme.MediMedGreen
 
-/**
- * The green blob / organic shape background seen across all Figma screens.
- * Draws two large soft circles (blobs) to replicate the design.
- */
 @Composable
-fun GreenBlobBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun GreenBlobBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MediMedGreen)
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // Bottom-left blob
+            // Bottom-left large blob
             drawCircle(
                 color  = MediBlobGreen.copy(alpha = 0.55f),
-                radius = size.width * 0.55f,
-                center = Offset(x = -size.width * 0.15f, y = size.height * 0.80f)
+                radius = size.width * 0.60f,
+                center = Offset(x = -size.width * 0.15f, y = size.height * 0.82f)
             )
-            // Bottom-right blob (slightly smaller)
+            // Bottom-right blob
             drawCircle(
                 color  = MediBlobGreen.copy(alpha = 0.40f),
-                radius = size.width * 0.42f,
-                center = Offset(x = size.width * 0.95f, y = size.height * 0.92f)
+                radius = size.width * 0.45f,
+                center = Offset(x = size.width * 0.95f, y = size.height * 0.90f)
             )
             // Top-right subtle blob
             drawCircle(
-                color  = MediBlobGreen.copy(alpha = 0.25f),
-                radius = size.width * 0.35f,
-                center = Offset(x = size.width * 1.05f, y = size.height * 0.12f)
+                color  = MediBlobGreen.copy(alpha = 0.20f),
+                radius = size.width * 0.32f,
+                center = Offset(x = size.width * 1.08f, y = size.height * 0.10f)
             )
         }
         content()

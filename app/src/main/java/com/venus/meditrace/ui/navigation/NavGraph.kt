@@ -1,29 +1,52 @@
 package com.venus.meditrace.ui.navigation
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.venus.meditrace.ui.screens.home.HomeScreen
+import com.venus.meditrace.ui.screens.onboarding.OnboardingScreen
 import com.venus.meditrace.ui.screens.report.ReportProductScreen
 import com.venus.meditrace.ui.screens.result.ProductDetailsScreen
 import com.venus.meditrace.ui.screens.result.ProductNotFoundScreen
 import com.venus.meditrace.ui.screens.scan.ScanScreen
+import com.venus.meditrace.ui.screens.splash.SplashScreen
 import com.venus.meditrace.viewmodel.ReportViewModel
 import com.venus.meditrace.viewmodel.ScanViewModel
 
 @Composable
 fun MediTraceNavGraph(navController: NavHostController) {
 
-    // ScanViewModel is shared between Scan and Result screens
-    // so both can access the same scanned data
+    // ScanViewModel shared across Scan → Result screens
     val scanViewModel: ScanViewModel = viewModel()
 
     NavHost(
         navController    = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Splash.route
     ) {
+
+        // ── Splash ─────────────────────────────────────────────────────────
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onSplashComplete = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ── Onboarding ─────────────────────────────────────────────────────
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onFinished = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         // ── Home ───────────────────────────────────────────────────────────
         composable(Screen.Home.route) {
@@ -38,7 +61,7 @@ fun MediTraceNavGraph(navController: NavHostController) {
         // ── Scan ───────────────────────────────────────────────────────────
         composable(Screen.Scan.route) {
             ScanScreen(
-                viewModel = scanViewModel,
+                viewModel  = scanViewModel,
                 onVerified = {
                     navController.navigate(Screen.ProductDetails.route) {
                         popUpTo(Screen.Scan.route) { inclusive = true }
@@ -53,7 +76,7 @@ fun MediTraceNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Product Details (Verified) ─────────────────────────────────────
+        // ── Product Details (Verified) ──────────────────────────────────────
         composable(Screen.ProductDetails.route) {
             ProductDetailsScreen(
                 viewModel = scanViewModel,
@@ -66,7 +89,7 @@ fun MediTraceNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Product Not Found ──────────────────────────────────────────────
+        // ── Product Not Found ───────────────────────────────────────────────
         composable(Screen.ProductNotFound.route) {
             ProductNotFoundScreen(
                 onReportCounterfeit = {
@@ -81,7 +104,7 @@ fun MediTraceNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Report Product ─────────────────────────────────────────────────
+        // ── Report Product ──────────────────────────────────────────────────
         composable(Screen.ReportProduct.route) {
             val reportVm: ReportViewModel = viewModel()
             ReportProductScreen(

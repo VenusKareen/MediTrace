@@ -32,40 +32,36 @@ fun ReportProductScreen(
     var location       by remember { mutableStateOf("") }
     var medicationName by remember { mutableStateOf("") }
 
-    // Navigate away when report submitted successfully
+    // Navigate to home on success
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onSuccess()
     }
 
-    // ── White background as per Figma Report screen ───────────────────────
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-
         // ── Top Bar ───────────────────────────────────────────────────────
         MediTraceTopBar(
-            showBack = true,
             title    = "Report Suspicious Product",
+            showBack = true,
             onBack   = onBack
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Body ──────────────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
         ) {
-
-            // Intro paragraph
+            // ── Intro text ────────────────────────────────────────────────
             Text(
-                text       = "Your input is vital to public safety. Reporting counterfeit " +
-                        "or unauthorized medication helps us secure the pharmaceutical " +
-                        "supply chain.",
+                text       = "Your input is vital to public safety. Reporting " +
+                        "counterfeit or unauthorized medication helps us secure " +
+                        "the pharmaceutical supply chain.",
                 color      = TextGray,
                 fontSize   = 14.sp,
                 lineHeight = 22.sp
@@ -82,9 +78,8 @@ fun ReportProductScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Form fields ───────────────────────────────────────────────
-
-            ReportTextField(
+            // ── Input fields ──────────────────────────────────────────────
+            ReportField(
                 value         = pharmacyName,
                 onValueChange = { pharmacyName = it },
                 placeholder   = "Pharmacy Name",
@@ -93,7 +88,7 @@ fun ReportProductScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ReportTextField(
+            ReportField(
                 value         = location,
                 onValueChange = { location = it },
                 placeholder   = "Location",
@@ -102,28 +97,26 @@ fun ReportProductScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ReportTextField(
+            ReportField(
                 value         = medicationName,
                 onValueChange = { medicationName = it },
                 placeholder   = "Medication Name",
                 imeAction     = ImeAction.Done
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Error message
             if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text     = uiState.errorMessage!!,
                     color    = ErrorRed,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    fontSize = 13.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Submit Button ─────────────────────────────────────────────
+            // ── Submit button ─────────────────────────────────────────────
             Button(
                 onClick  = {
                     viewModel.submitReport(
@@ -138,12 +131,12 @@ fun ReportProductScreen(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .height(50.dp)
-                    .widthIn(min = 180.dp)
+                    .widthIn(min = 160.dp)
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
-                        color    = White,
-                        modifier = Modifier.size(22.dp),
+                        color       = White,
+                        modifier    = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -161,14 +154,12 @@ fun ReportProductScreen(
     }
 }
 
-// ── Reusable text field styled to Figma ──────────────────────────────────
-
 @Composable
-private fun ReportTextField(
+private fun ReportField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    imeAction: ImeAction = ImeAction.Next
+    imeAction: ImeAction
 ) {
     OutlinedTextField(
         value         = value,
@@ -179,7 +170,6 @@ private fun ReportTextField(
         colors        = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = MediDarkGreen,
             unfocusedBorderColor = BorderGray,
-            focusedLabelColor    = MediDarkGreen,
             cursorColor          = MediDarkGreen
         ),
         keyboardOptions = KeyboardOptions(

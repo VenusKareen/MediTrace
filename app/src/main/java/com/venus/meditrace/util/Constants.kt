@@ -8,13 +8,12 @@ object Constants {
     const val KEY_USER_EMAIL      = "user_email"
     const val KEY_USER_NAME       = "user_name"
 
-    // Verification statuses — must match backend exactly
-    const val STATUS_VALID       = "VALID"
-    const val STATUS_EXPIRED     = "EXPIRED"
-    const val STATUS_COUNTERFEIT = "COUNTERFEIT"
-    const val STATUS_NOT_FOUND   = "NOT_FOUND"
+    const val STATUS_VALID        = "VALID"
+    const val STATUS_EXPIRED      = "EXPIRED"
+    const val STATUS_COUNTERFEIT  = "COUNTERFEIT"
+    const val STATUS_NOT_FOUND    = "NOT_FOUND"
 
-    const val CONNECT_TIMEOUT = 30L
-    const val READ_TIMEOUT    = 30L
-    const val WRITE_TIMEOUT   = 30L
+    const val CONNECT_TIMEOUT     = 30L
+    const val READ_TIMEOUT        = 30L
+    const val WRITE_TIMEOUT       = 30L
 }

@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ReportUiState(
-    val isLoading: Boolean      = false,
-    val isSuccess: Boolean      = false,
-    val errorMessage: String?   = null
+    val isLoading: Boolean    = false,
+    val isSuccess: Boolean    = false,
+    val errorMessage: String? = null
 )
 
 class ReportViewModel(application: Application) : AndroidViewModel(application) {

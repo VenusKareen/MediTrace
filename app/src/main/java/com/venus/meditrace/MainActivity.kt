@@ -9,8 +9,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.venus.meditrace.ui.navigation.MediTraceNavGraph
-import com.venus.meditrace.ui.theme.MediTraceTheme
 import com.venus.meditrace.ui.theme.MediMedGreen
+import com.venus.meditrace.ui.theme.MediTraceTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

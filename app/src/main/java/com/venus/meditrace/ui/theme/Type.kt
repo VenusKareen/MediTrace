@@ -8,10 +8,10 @@ import androidx.compose.ui.unit.sp
 
 val MediTraceTypography = Typography(
     displayLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize   = 26.sp,
-        lineHeight = 34.sp,
+        fontFamily    = FontFamily.Default,
+        fontWeight    = FontWeight.Bold,
+        fontSize      = 26.sp,
+        lineHeight    = 34.sp,
         letterSpacing = 0.5.sp
     ),
     headlineMedium = TextStyle(
@@ -21,10 +21,10 @@ val MediTraceTypography = Typography(
         lineHeight = 28.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize   = 18.sp,
-        lineHeight = 26.sp,
+        fontFamily    = FontFamily.Default,
+        fontWeight    = FontWeight.Bold,
+        fontSize      = 18.sp,
+        lineHeight    = 26.sp,
         letterSpacing = 1.sp
     ),
     titleMedium = TextStyle(
