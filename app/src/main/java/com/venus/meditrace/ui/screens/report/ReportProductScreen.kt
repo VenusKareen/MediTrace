@@ -32,7 +32,6 @@ fun ReportProductScreen(
     var location       by remember { mutableStateOf("") }
     var medicationName by remember { mutableStateOf("") }
 
-    // Navigate to home on success
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onSuccess()
     }
@@ -43,7 +42,7 @@ fun ReportProductScreen(
             .background(Color.White)
             .verticalScroll(rememberScrollState())
     ) {
-        // ── Top Bar ───────────────────────────────────────────────────────
+
         MediTraceTopBar(
             title    = "Report Suspicious Product",
             showBack = true,
@@ -57,7 +56,7 @@ fun ReportProductScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
         ) {
-            // ── Intro text ────────────────────────────────────────────────
+
             Text(
                 text       = "Your input is vital to public safety. Reporting " +
                         "counterfeit or unauthorized medication helps us secure " +
@@ -78,7 +77,6 @@ fun ReportProductScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Input fields ──────────────────────────────────────────────
             ReportField(
                 value         = pharmacyName,
                 onValueChange = { pharmacyName = it },
@@ -104,7 +102,6 @@ fun ReportProductScreen(
                 imeAction     = ImeAction.Done
             )
 
-            // Error message
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -116,7 +113,6 @@ fun ReportProductScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Submit button ─────────────────────────────────────────────
             Button(
                 onClick  = {
                     viewModel.submitReport(

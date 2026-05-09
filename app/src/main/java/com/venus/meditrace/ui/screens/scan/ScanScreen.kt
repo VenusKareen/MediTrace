@@ -49,7 +49,6 @@ fun ScanScreen(
     val uiState by viewModel.uiState.collectAsState()
     val cameraPermission = rememberPermissionState(android.Manifest.permission.CAMERA)
 
-    // React to state changes
     LaunchedEffect(uiState) {
         when (uiState) {
             is ScanUiState.Verified -> onVerified()
@@ -70,7 +69,7 @@ fun ScanScreen(
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // ── Top bar ───────────────────────────────────────────────────────
+
         Row(
             modifier          = Modifier
                 .fillMaxWidth()
@@ -96,7 +95,6 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ── Camera viewfinder ─────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .padding(horizontal = 28.dp)
@@ -136,7 +134,6 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ── Instruction text ──────────────────────────────────────────────
         Text(
             text      = "Point your camera to the QR Code on the product",
             fontSize  = 13.sp,
@@ -145,7 +142,6 @@ fun ScanScreen(
             modifier  = Modifier.padding(horizontal = 48.dp)
         )
 
-        // ── Loading indicator ─────────────────────────────────────────────
         if (uiState is ScanUiState.Loading) {
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator(color = MediDarkGreen)
@@ -155,8 +151,6 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // ── DEMO buttons — lets you see all screens without a real QR ─────
-        // Remove these once the backend is live
         Column(
             modifier            = Modifier
                 .fillMaxWidth()
@@ -211,7 +205,6 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ── Green circle button (Figma decorative element) ─────────────────
         Box(
             modifier         = Modifier
                 .padding(bottom = 36.dp)
@@ -230,7 +223,6 @@ fun ScanScreen(
     }
 }
 
-// ── CameraX Preview ───────────────────────────────────────────────────────
 @Composable
 private fun CameraPreview(onQrDetected: (String) -> Unit) {
     val context        = LocalContext.current

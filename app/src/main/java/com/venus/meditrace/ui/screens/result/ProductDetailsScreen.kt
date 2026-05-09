@@ -41,25 +41,29 @@ fun ProductDetailsScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Top Bar ──────────────────────────────────────────────────
-            MediTraceTopBar(showBack = true, onBack = onBack)
+            MediTraceTopBar(
+                showBack = true,
+                onBack   = onBack
+            )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Illustration area — checkmark + person figure ─────────────
             Box(
                 modifier         = Modifier
-                    .size(130.dp)
+                    .size(120.dp)
                     .clip(CircleShape)
-                    .background(MediDarkGreen.copy(alpha = 0.5f)),
+                    .background(MediDarkGreen.copy(alpha = 0.45f)),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Icon(
                         imageVector        = Icons.Default.CheckCircle,
                         contentDescription = "Verified",
                         tint               = MediAccentGreen,
-                        modifier           = Modifier.size(48.dp)
+                        modifier           = Modifier.size(44.dp)
                     )
                     Icon(
                         imageVector        = Icons.Default.Person,
@@ -80,16 +84,16 @@ fun ProductDetailsScreen(
                 textAlign  = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // ── Product Details Card ──────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(MediDarkGreen)
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text       = "Product Details",
@@ -97,20 +101,18 @@ fun ProductDetailsScreen(
                     fontSize   = 15.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign  = TextAlign.Center,
-                    modifier   = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
+                    modifier   = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 )
 
-                DetailRow("Manufacturer",   result.manufacturer   ?: "N/A")
-                DetailRow("Retailer",       result.retailer        ?: "N/A")
-                DetailRow("Store Location", result.storeLocation   ?: "N/A")
-                DetailRow("Product ID",     result.productId       ?: "N/A")
-                DetailRow("Batch",          result.batchNumber     ?: "N/A")
-                DetailRow("Name",           result.productName     ?: "N/A")
-                DetailRow("Strength",       result.strength        ?: "N/A")
-                DetailRow("Expiry Date",    result.expiryDate      ?: "N/A")
-                DetailRow("PPB Reg. No.",   result.ppbRegNumber    ?: "N/A")
+                DetailRow("Manufacturer",   result.manufacturer  ?: "N/A")
+                DetailRow("Retailer",       result.retailer       ?: "N/A")
+                DetailRow("Store Location", result.storeLocation  ?: "N/A")
+                DetailRow("Product ID",     result.productId      ?: "N/A")
+                DetailRow("Batch",          result.batchNumber    ?: "N/A")
+                DetailRow("Name",           result.productName    ?: "N/A")
+                DetailRow("Strength",       result.strength       ?: "N/A")
+                DetailRow("Expiry Date",    result.expiryDate     ?: "N/A")
+                DetailRow("PPB Reg. No.",   result.ppbRegNumber   ?: "N/A")
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -121,10 +123,9 @@ fun ProductDetailsScreen(
 @Composable
 private fun DetailRow(label: String, value: String) {
     Row(
-        modifier              = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 7.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier              = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment     = Alignment.CenterVertically
     ) {
         Text(
             text       = "$label:",

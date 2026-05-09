@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import com.venus.meditrace.ui.components.GreenBlobBackground
 import com.venus.meditrace.ui.theme.*
 
-// ── Data model for each onboarding page ───────────────────────────────────
 data class OnboardingData(
     val icon: ImageVector,
     val title: String,
@@ -61,153 +61,144 @@ fun OnboardingScreen(onFinished: () -> Unit) {
     val totalPages = pages.size
 
     GreenBlobBackground {
-        Column(
-            modifier            = Modifier
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(MediMedGreen)
         ) {
-
-            Spacer(modifier = Modifier.height(60.dp))
-
-            // ── Animated page content ─────────────────────────────────────
-            AnimatedContent(
-                targetState = currentPage,
-                transitionSpec = {
-                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                },
-                label = "onboarding_page"
-            ) { page ->
-                OnboardingPage(data = pages[page])
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // ── Dot indicators ────────────────────────────────────────────
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment     = Alignment.CenterVertically
+            Column(
+                modifier            = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                repeat(totalPages) { index ->
+                Spacer(modifier = Modifier.height(40.dp))
+
+                AnimatedContent(
+                    targetState    = currentPage,
+                    transitionSpec = {
+                        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                    },
+                    label    = "onboarding_page",
+                    modifier = Modifier.weight(1f)
+                ) { page ->
                     Box(
-                        modifier = Modifier
-                            .size(if (index == currentPage) 10.dp else 7.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (index == currentPage) White
-                                else WhiteAlpha40
-                            )
-                    )
+                        modifier         = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        OnboardingPage(data = pages[page])
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    modifier              = Modifier.padding(vertical = 20.dp)
+                ) {
+                    repeat(totalPages) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(if (index == currentPage) 10.dp else 7.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index == currentPage) White else WhiteAlpha40
+                                )
+                        )
+                    }
+                }
 
-            // ── Navigation buttons ────────────────────────────────────────
-            Row(
-                modifier              = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 48.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // "Back" button — hidden on first page
-                if (currentPage > 0) {
-                    OutlinedButton(
-                        onClick = { currentPage-- },
-                        shape   = RoundedCornerShape(50.dp),
-                        colors  = ButtonDefaults.outlinedButtonColors(
-                            contentColor = White
-                        ),
-                        border  = androidx.compose.foundation.BorderStroke(
-                            1.dp, WhiteAlpha70
-                        ),
+                Row(
+                    modifier              = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (currentPage > 0) {
+                        OutlinedButton(
+                            onClick  = { currentPage-- },
+                            shape    = RoundedCornerShape(50.dp),
+                            colors   = ButtonDefaults.outlinedButtonColors(contentColor = White),
+                            border   = BorderStroke(1.dp, WhiteAlpha70),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                text       = "Back",
+                                fontSize   = 15.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+
+                    Button(
+                        onClick  = {
+                            if (currentPage < totalPages - 1) currentPage++
+                            else onFinished()
+                        },
+                        colors   = ButtonDefaults.buttonColors(containerColor = MediDarkGreen),
+                        shape    = RoundedCornerShape(50.dp),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
                     ) {
                         Text(
-                            text       = "Back",
+                            text       = if (currentPage == totalPages - 1) "Finish" else "Next",
+                            color      = White,
                             fontSize   = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-
-                // "Next" / "Finish" button
-                Button(
-                    onClick = {
-                        if (currentPage < totalPages - 1) {
-                            currentPage++
-                        } else {
-                            onFinished()
-                        }
-                    },
-                    colors  = ButtonDefaults.buttonColors(
-                        containerColor = MediDarkGreen
-                    ),
-                    shape   = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                ) {
-                    Text(
-                        text       = if (currentPage == totalPages - 1) "Finish" else "Next",
-                        color      = White,
-                        fontSize   = 15.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
                 }
             }
         }
     }
 }
 
-// ── Single onboarding page content ────────────────────────────────────────
 @Composable
 private fun OnboardingPage(data: OnboardingData) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier            = Modifier.fillMaxWidth()
     ) {
-        // Illustration box
         Box(
             modifier = Modifier
-                .size(180.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MediDarkGreen.copy(alpha = 0.5f)),
+                .size(160.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(MediDarkGreen.copy(alpha = 0.55f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector        = data.icon,
                 contentDescription = null,
                 tint               = White,
-                modifier           = Modifier.size(90.dp)
+                modifier           = Modifier.size(80.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
-        // Title
         Text(
             text       = data.title,
             color      = White,
-            fontSize   = 18.sp,
+            fontSize   = 20.sp,
             fontWeight = FontWeight.Bold,
             textAlign  = TextAlign.Center,
-            lineHeight = 26.sp
+            lineHeight = 28.sp
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Description
         Text(
-            text      = data.description,
-            color     = WhiteAlpha70,
-            fontSize  = 13.sp,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp
+            text       = data.description,
+            color      = WhiteAlpha70,
+            fontSize   = 14.sp,
+            textAlign  = TextAlign.Center,
+            lineHeight = 22.sp
         )
     }
 }

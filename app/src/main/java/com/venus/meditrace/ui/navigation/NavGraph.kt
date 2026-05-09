@@ -18,26 +18,20 @@ import com.venus.meditrace.viewmodel.ScanViewModel
 @Composable
 fun MediTraceNavGraph(navController: NavHostController) {
 
-    // ScanViewModel shared across Scan → Result screens
-    val scanViewModel: ScanViewModel = viewModel()
+    val scanViewModel:   ScanViewModel   = viewModel()
+    val reportViewModel: ReportViewModel = viewModel()
 
     NavHost(
         navController    = navController,
         startDestination = Screen.Splash.route
     ) {
 
-        // ── Splash ─────────────────────────────────────────────────────────
         composable(Screen.Splash.route) {
             SplashScreen(
-                onSplashComplete = {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
+                navController = navController
             )
         }
 
-        // ── Onboarding ─────────────────────────────────────────────────────
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onFinished = {
@@ -48,71 +42,43 @@ fun MediTraceNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Home ───────────────────────────────────────────────────────────
         composable(Screen.Home.route) {
             HomeScreen(
-                onScanClick = {
-                    scanViewModel.startScanning()
-                    navController.navigate(Screen.Scan.route)
-                }
+                navController = navController,
+                onScanClick   = { navController.navigate(Screen.Scan.route) }
             )
         }
 
-        // ── Scan ───────────────────────────────────────────────────────────
         composable(Screen.Scan.route) {
             ScanScreen(
                 viewModel  = scanViewModel,
-                onVerified = {
-                    navController.navigate(Screen.ProductDetails.route) {
-                        popUpTo(Screen.Scan.route) { inclusive = true }
-                    }
-                },
-                onNotFound = {
-                    navController.navigate(Screen.ProductNotFound.route) {
-                        popUpTo(Screen.Scan.route) { inclusive = true }
-                    }
-                },
-                onBack = { navController.popBackStack() }
+                onVerified = { navController.navigate(Screen.ProductDetails.route) },
+                onNotFound = { navController.navigate(Screen.ProductNotFound.route) },
+                onBack     = { navController.popBackStack() }
             )
         }
 
-        // ── Product Details (Verified) ──────────────────────────────────────
         composable(Screen.ProductDetails.route) {
             ProductDetailsScreen(
                 viewModel = scanViewModel,
-                onBack    = {
-                    scanViewModel.reset()
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onBack    = { navController.popBackStack() }
             )
         }
 
-        // ── Product Not Found ───────────────────────────────────────────────
         composable(Screen.ProductNotFound.route) {
             ProductNotFoundScreen(
-                onReportCounterfeit = {
-                    navController.navigate(Screen.ReportProduct.route)
-                },
-                onBack = {
-                    scanViewModel.reset()
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onReportCounterfeit = { navController.navigate(Screen.ReportProduct.route) },
+                onBack              = { navController.popBackStack() }
             )
         }
 
-        // ── Report Product ──────────────────────────────────────────────────
         composable(Screen.ReportProduct.route) {
-            val reportVm: ReportViewModel = viewModel()
             ReportProductScreen(
-                viewModel = reportVm,
+                viewModel = reportViewModel,
                 onBack    = { navController.popBackStack() },
                 onSuccess = {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 }
             )

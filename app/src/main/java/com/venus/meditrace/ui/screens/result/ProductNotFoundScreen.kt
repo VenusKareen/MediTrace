@@ -27,17 +27,16 @@ fun ProductNotFoundScreen(
             modifier            = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Top Bar ──────────────────────────────────────────────────
+
             MediTraceTopBar(showBack = true, onBack = onBack)
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ── Illustration — warning icon + person ──────────────────────
             Box(
                 modifier         = Modifier.size(150.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Person figure
+
                 Icon(
                     imageVector        = Icons.Default.Person,
                     contentDescription = null,
@@ -46,7 +45,7 @@ fun ProductNotFoundScreen(
                         .size(100.dp)
                         .align(Alignment.BottomCenter)
                 )
-                // Warning exclamation
+
                 Icon(
                     imageVector        = Icons.Default.ErrorOutline,
                     contentDescription = "Not Found",
@@ -59,7 +58,6 @@ fun ProductNotFoundScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── "Product Not Found" label ─────────────────────────────────
             Text(
                 text       = "Product Not Found",
                 color      = ErrorRed,
@@ -84,7 +82,6 @@ fun ProductNotFoundScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Report Counterfeit button ─────────────────────────────────
             Button(
                 onClick  = onReportCounterfeit,
                 colors   = ButtonDefaults.buttonColors(containerColor = MediDarkGreen),
