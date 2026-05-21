@@ -8,12 +8,21 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    /**
+     * Verify a scanned product.
+     *
+     * @param batchId   The batch identifier extracted from the QR code path.
+     * @param signature The HMAC-SHA256 signature from the QR code query param.
+     */
     @GET("verify/{batchId}")
     suspend fun verifyProduct(
         @Path("batchId") batchId: String,
         @Query("sig")    signature: String
     ): Response<VerificationResult>
 
+    /**
+     * Submit a counterfeit / suspicious product report.
+     */
     @POST("report")
     suspend fun reportProduct(
         @Body request: ReportRequest

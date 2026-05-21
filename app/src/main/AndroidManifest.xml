@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Network -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <!-- Camera (required for QR scanning) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera"          android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
@@ -16,7 +18,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MediTrace"
-        android:usesCleartextTraffic="true">
+        android:networkSecurityConfig="@xml/network_security_config">
+        <!--
+            NOTE: android:usesCleartextTraffic="true" has been REMOVED.
+            All traffic must go over HTTPS in production.
+
+            During local development against an emulator (10.0.2.2) or a
+            LAN IP, add a <domain-config> entry in res/xml/network_security_config.xml
+            instead of enabling cleartext globally. See that file for details.
+        -->
 
         <activity
             android:name=".MainActivity"

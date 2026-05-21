@@ -27,17 +27,39 @@ import com.venus.meditrace.ui.navigation.Screen
 import com.venus.meditrace.ui.theme.*
 import com.venus.meditrace.util.Constants
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+// ── Sample history — replace with Room DAO flow in production ─────────────
 private val sampleHistory = listOf(
-    ScanHistoryItem("Amoxicillin 500mg",   "Nairobi Pharmacy", Constants.STATUS_VALID,   "2025-05-01", "AMX-B001"),
-    ScanHistoryItem("Ciprofloxacin 250mg", "City Chemist",     Constants.STATUS_EXPIRED, "2025-04-28", "CIP-B002"),
-    ScanHistoryItem("Penicillin 500mg",    "MedPlus Pharmacy", Constants.STATUS_VALID,   "2025-04-25", "PEN-B003"),
+    ScanHistoryItem(
+        productName     = "Amoxicillin 500mg",
+        storeLocation   = "Nairobi Pharmacy",
+        status          = Constants.STATUS_VALID,
+        timestampMillis = System.currentTimeMillis() - 86_400_000L,
+        batchId         = "AMX-B001"
+    ),
+    ScanHistoryItem(
+        productName     = "Ciprofloxacin 250mg",
+        storeLocation   = "City Chemist",
+        status          = Constants.STATUS_EXPIRED,
+        timestampMillis = System.currentTimeMillis() - 3 * 86_400_000L,
+        batchId         = "CIP-B002"
+    ),
+    ScanHistoryItem(
+        productName     = "Penicillin 500mg",
+        storeLocation   = "MedPlus Pharmacy",
+        status          = Constants.STATUS_VALID,
+        timestampMillis = System.currentTimeMillis() - 6 * 86_400_000L,
+        batchId         = "PEN-B003"
+    ),
 )
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    onScanClick: () -> Unit
+    onScanClick:   () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope       = rememberCoroutineScope()
@@ -75,22 +97,33 @@ fun HomeScreen(
                 HorizontalDivider(color = WhiteAlpha40, thickness = 0.5.dp)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                DrawerItem(Icons.Default.Home,          "Home") {
+                // ── Home — already on home, just close drawer ─────────────
+                DrawerItem(Icons.Default.Home, "Home") {
                     scope.launch { drawerState.close() }
                 }
+
+                // ── Scan Product ──────────────────────────────────────────
                 DrawerItem(Icons.Default.QrCodeScanner, "Scan Product") {
                     scope.launch { drawerState.close() }
                     onScanClick()
                 }
-                DrawerItem(Icons.Default.History,       "Scan History") {
+
+                // ── Scan History ──────────────────────────────────────────
+                DrawerItem(Icons.Default.History, "Scan History") {
                     scope.launch { drawerState.close() }
+                    navController.navigate(Screen.ScanHistory.route)
                 }
-                DrawerItem(Icons.Default.Report,        "Report Product") {
+
+                // ── Report Product ────────────────────────────────────────
+                DrawerItem(Icons.Default.Report, "Report Product") {
                     scope.launch { drawerState.close() }
                     navController.navigate(Screen.ReportProduct.route)
                 }
-                DrawerItem(Icons.Default.Info,          "About") {
+
+                // ── About ─────────────────────────────────────────────────
+                DrawerItem(Icons.Default.Info, "About") {
                     scope.launch { drawerState.close() }
+                    navController.navigate(Screen.About.route)
                 }
             }
         }
@@ -115,7 +148,7 @@ fun HomeScreen(
                             .padding(top = 16.dp)
                     ) {
                         Text(
-                            text       = "History",
+                            text       = "Recent Scans",
                             color      = White,
                             fontSize   = 18.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -134,7 +167,7 @@ fun HomeScreen(
                                     item    = item,
                                     onClick = {
                                         navController.navigate(
-                                            "${Screen.ProductDetails.route}/${item.batchId}"
+                                            Screen.ProductDetails.createRoute(item.batchId)
                                         )
                                     }
                                 )
@@ -164,6 +197,11 @@ fun HomeScreen(
     }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+private fun formatTimestamp(millis: Long): String =
+    SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(millis))
+
 @Composable
 private fun DrawerItem(icon: ImageVector, label: String, onClick: () -> Unit) {
     NavigationDrawerItem(
@@ -179,10 +217,7 @@ private fun DrawerItem(icon: ImageVector, label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HistoryCard(
-    item: ScanHistoryItem,
-    onClick: () -> Unit
-) {
+private fun HistoryCard(item: ScanHistoryItem, onClick: () -> Unit) {
     val statusColor = when (item.status) {
         Constants.STATUS_VALID       -> StatusVerified
         Constants.STATUS_EXPIRED     -> StatusExpired
@@ -236,12 +271,22 @@ private fun HistoryCard(
                 fontSize = 12.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text       = statusLabel,
-                color      = statusColor,
-                fontSize   = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier              = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text       = statusLabel,
+                    color      = statusColor,
+                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text     = formatTimestamp(item.timestampMillis),
+                    color    = WhiteAlpha70,
+                    fontSize = 11.sp
+                )
+            }
         }
 
         Icon(

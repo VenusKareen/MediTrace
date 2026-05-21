@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +30,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.zxing.*
 import com.google.zxing.common.HybridBinarizer
+import com.venus.meditrace.BuildConfig
 import com.venus.meditrace.data.model.VerificationResult
 import com.venus.meditrace.ui.theme.*
 import com.venus.meditrace.viewmodel.ScanUiState
@@ -41,19 +42,20 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScanScreen(
-    viewModel: ScanViewModel,
-    onVerified: () -> Unit,
+    viewModel:  ScanViewModel,
+    onVerified: (batchId: String) -> Unit,   // now passes batchId to NavGraph
     onNotFound: () -> Unit,
-    onBack: () -> Unit
+    onBack:     () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState          by viewModel.uiState.collectAsState()
     val cameraPermission = rememberPermissionState(android.Manifest.permission.CAMERA)
 
+    // React to terminal states and forward to NavGraph
     LaunchedEffect(uiState) {
-        when (uiState) {
-            is ScanUiState.Verified -> onVerified()
+        when (val state = uiState) {
+            is ScanUiState.Verified -> onVerified(state.batchId)
             is ScanUiState.NotFound -> onNotFound()
-            else -> Unit
+            else                    -> Unit
         }
     }
 
@@ -70,6 +72,7 @@ fun ScanScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // ── Top bar ───────────────────────────────────────────────────────
         Row(
             modifier          = Modifier
                 .fillMaxWidth()
@@ -78,7 +81,7 @@ fun ScanScreen(
         ) {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector        = Icons.Default.ArrowBackIosNew,
+                    imageVector        = Icons.AutoMirrored.Filled.ArrowBackIos,
                     contentDescription = "Back",
                     tint               = MediDarkGreen,
                     modifier           = Modifier.size(20.dp)
@@ -95,6 +98,7 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // ── Camera preview ────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .padding(horizontal = 28.dp)
@@ -107,7 +111,6 @@ fun ScanScreen(
         ) {
             if (cameraPermission.status.isGranted) {
                 CameraPreview(onQrDetected = { viewModel.onQrDetected(it) })
-                // Green alignment guide
                 Box(
                     modifier = Modifier
                         .size(175.dp)
@@ -142,6 +145,7 @@ fun ScanScreen(
             modifier  = Modifier.padding(horizontal = 48.dp)
         )
 
+        // ── Loading indicator ─────────────────────────────────────────────
         if (uiState is ScanUiState.Loading) {
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator(color = MediDarkGreen)
@@ -151,55 +155,56 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text      = "── Demo Navigation ──",
-                color     = TextGray,
-                fontSize  = 11.sp,
-                textAlign = TextAlign.Center
-            )
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // ── Demo buttons — DEBUG builds only ─────────────────────────────
+        if (BuildConfig.DEBUG) {
+            Column(
+                modifier            = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Simulate a VALID scan result
-                Button(
-                    onClick = {
-                        viewModel.setMockResult(
-                            VerificationResult(
-                                status          = "VALID",
-                                productName     = "Amoxicillin 500mg",
-                                manufacturer    = "PharmaCo Kenya Ltd.",
-                                retailer        = "Nairobi Pharmacy",
-                                storeLocation   = "Westlands, Nairobi",
-                                productId       = "PC-AMX-001",
-                                batchNumber     = "AMX-B001-2025",
-                                activeIngredient = "Amoxicillin Trihydrate",
-                                strength        = "500mg",
-                                expiryDate      = "2027-06-30",
-                                ppbRegNumber    = "PPB/NOM/2021/001",
-                                message         = null
+                Text(
+                    text      = "── Demo Navigation ──",
+                    color     = TextGray,
+                    fontSize  = 11.sp,
+                    textAlign = TextAlign.Center
+                )
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            viewModel.setMockResult(
+                                VerificationResult(
+                                    status           = "VALID",
+                                    productName      = "Amoxicillin 500mg",
+                                    manufacturer     = "PharmaCo Kenya Ltd.",
+                                    retailer         = "Nairobi Pharmacy",
+                                    storeLocation    = "Westlands, Nairobi",
+                                    productId        = "PC-AMX-001",
+                                    batchNumber      = "AMX-B001-2025",
+                                    activeIngredient = "Amoxicillin Trihydrate",
+                                    strength         = "500mg",
+                                    expiryDate       = "2027-06-30",
+                                    ppbRegNumber     = "PPB/NOM/2021/001",
+                                    message          = null
+                                )
                             )
-                        )
-                    },
-                    colors   = ButtonDefaults.buttonColors(containerColor = MediAccentGreen),
-                    shape    = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f).height(40.dp)
-                ) { Text("✓ Valid", color = White, fontSize = 12.sp) }
+                        },
+                        colors   = ButtonDefaults.buttonColors(containerColor = MediAccentGreen),
+                        shape    = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) { Text("✓ Valid", color = White, fontSize = 12.sp) }
 
-                // Simulate NOT FOUND
-                Button(
-                    onClick  = { viewModel.setNotFound() },
-                    colors   = ButtonDefaults.buttonColors(containerColor = ErrorRed),
-                    shape    = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f).height(40.dp)
-                ) { Text("✗ Not Found", color = White, fontSize = 12.sp) }
+                    Button(
+                        onClick  = { viewModel.setNotFound() },
+                        colors   = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                        shape    = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f).height(40.dp)
+                    ) { Text("✗ Not Found", color = White, fontSize = 12.sp) }
+                }
             }
         }
 
@@ -223,11 +228,12 @@ fun ScanScreen(
     }
 }
 
+// ── Camera preview ────────────────────────────────────────────────────────
+
 @Composable
 private fun CameraPreview(onQrDetected: (String) -> Unit) {
-    val context        = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val executor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+    val lifecycleOwner             = LocalLifecycleOwner.current
+    val executor: ExecutorService  = remember { Executors.newSingleThreadExecutor() }
 
     DisposableEffect(Unit) { onDispose { executor.shutdown() } }
 
@@ -264,6 +270,7 @@ private fun CameraPreview(onQrDetected: (String) -> Unit) {
 }
 
 // ── ZXing QR analyzer ─────────────────────────────────────────────────────
+
 private class QrCodeAnalyzer(
     private val onQrDetected: (String) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -281,7 +288,7 @@ private class QrCodeAnalyzer(
         try {
             onQrDetected(reader.decode(BinaryBitmap(HybridBinarizer(source))).text)
         } catch (_: NotFoundException) {
-            // No QR in this frame — continue
+            // No QR in this frame — expected, continue
         } finally {
             image.close()
         }

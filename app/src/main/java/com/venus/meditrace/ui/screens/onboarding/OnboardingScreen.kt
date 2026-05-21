@@ -19,12 +19,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.venus.meditrace.ui.components.GreenBlobBackground
 import com.venus.meditrace.ui.theme.*
+import com.venus.meditrace.util.Constants
+import com.venus.meditrace.util.SecurePrefs
 
 data class OnboardingData(
     val icon: ImageVector,
@@ -56,9 +59,9 @@ private val pages = listOf(
 
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-
+    val context     = LocalContext.current
     var currentPage by remember { mutableIntStateOf(0) }
-    val totalPages = pages.size
+    val totalPages  = pages.size
 
     GreenBlobBackground {
         Box(
@@ -91,6 +94,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     }
                 }
 
+                // Dot indicators
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment     = Alignment.CenterVertically,
@@ -120,9 +124,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                             shape    = RoundedCornerShape(50.dp),
                             colors   = ButtonDefaults.outlinedButtonColors(contentColor = White),
                             border   = BorderStroke(1.dp, WhiteAlpha70),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
+                            modifier = Modifier.weight(1f).height(48.dp)
                         ) {
                             Text(
                                 text       = "Back",
@@ -135,15 +137,23 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     }
 
                     Button(
-                        onClick  = {
-                            if (currentPage < totalPages - 1) currentPage++
-                            else onFinished()
+                        onClick = {
+                            if (currentPage < totalPages - 1) {
+                                currentPage++
+                            } else {
+                                // Mark onboarding complete so SplashScreen
+                                // routes directly to Home on next launch
+                                SecurePrefs.putBoolean(
+                                    context,
+                                    Constants.KEY_ONBOARDING_DONE,
+                                    true
+                                )
+                                onFinished()
+                            }
                         },
                         colors   = ButtonDefaults.buttonColors(containerColor = MediDarkGreen),
                         shape    = RoundedCornerShape(50.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
+                        modifier = Modifier.weight(1f).height(48.dp)
                     ) {
                         Text(
                             text       = if (currentPage == totalPages - 1) "Finish" else "Next",

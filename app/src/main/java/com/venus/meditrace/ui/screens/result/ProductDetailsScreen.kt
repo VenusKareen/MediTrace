@@ -26,13 +26,26 @@ import com.venus.meditrace.ui.theme.*
 import com.venus.meditrace.viewmodel.ScanUiState
 import com.venus.meditrace.viewmodel.ScanViewModel
 
+/**
+ * Displays full product details after a successful QR verification.
+ *
+ * [batchId] is received as a navigation argument (from NavGraph) and used
+ * to match the correct [ScanUiState.Verified] state in the ViewModel.
+ * This makes the screen resilient to process death and back-stack recreation.
+ */
 @Composable
 fun ProductDetailsScreen(
     viewModel: ScanViewModel,
-    onBack: () -> Unit
+    batchId:   String,
+    onBack:    () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val result  = (uiState as? ScanUiState.Verified)?.result ?: return
+
+    // Match the verified state for this specific batchId
+    val result = (uiState as? ScanUiState.Verified)
+        ?.takeIf { it.batchId == batchId }
+        ?.result
+        ?: return   // If state was lost (process death), gracefully exit
 
     GreenBlobBackground {
         Column(
@@ -101,18 +114,21 @@ fun ProductDetailsScreen(
                     fontSize   = 15.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign  = TextAlign.Center,
-                    modifier   = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    modifier   = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 )
 
-                DetailRow("Manufacturer",   result.manufacturer  ?: "N/A")
-                DetailRow("Retailer",       result.retailer       ?: "N/A")
-                DetailRow("Store Location", result.storeLocation  ?: "N/A")
-                DetailRow("Product ID",     result.productId      ?: "N/A")
-                DetailRow("Batch",          result.batchNumber    ?: "N/A")
-                DetailRow("Name",           result.productName    ?: "N/A")
-                DetailRow("Strength",       result.strength       ?: "N/A")
-                DetailRow("Expiry Date",    result.expiryDate     ?: "N/A")
-                DetailRow("PPB Reg. No.",   result.ppbRegNumber   ?: "N/A")
+                DetailRow("Manufacturer",    result.manufacturer      ?: "N/A")
+                DetailRow("Retailer",        result.retailer          ?: "N/A")
+                DetailRow("Store Location",  result.storeLocation     ?: "N/A")
+                DetailRow("Product ID",      result.productId         ?: "N/A")
+                DetailRow("Batch",           result.batchNumber       ?: "N/A")
+                DetailRow("Name",            result.productName       ?: "N/A")
+                DetailRow("Active Ingredient", result.activeIngredient ?: "N/A")
+                DetailRow("Strength",        result.strength          ?: "N/A")
+                DetailRow("Expiry Date",     result.expiryDate        ?: "N/A")
+                DetailRow("PPB Reg. No.",    result.ppbRegNumber      ?: "N/A")
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -123,7 +139,9 @@ fun ProductDetailsScreen(
 @Composable
 private fun DetailRow(label: String, value: String) {
     Row(
-        modifier              = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        modifier              = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment     = Alignment.CenterVertically
     ) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,11 +23,16 @@ import androidx.navigation.NavController
 import com.venus.meditrace.ui.components.GreenBlobBackground
 import com.venus.meditrace.ui.navigation.Screen
 import com.venus.meditrace.ui.theme.*
+import com.venus.meditrace.util.Constants
+import com.venus.meditrace.util.SecurePrefs
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context = LocalContext.current
+
     var startAnim by remember { mutableStateOf(false) }
+
     val alpha by animateFloatAsState(
         targetValue   = if (startAnim) 1f else 0f,
         animationSpec = tween(1200),
@@ -40,8 +46,13 @@ fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         startAnim = true
-        delay(4500)
-        navController.navigate(Screen.Onboarding.route) {
+        delay(2500)
+
+        // Route to Home if onboarding already completed, otherwise Onboarding
+        val onboardingDone = SecurePrefs.getBoolean(context, Constants.KEY_ONBOARDING_DONE)
+        val destination    = if (onboardingDone) Screen.Home.route else Screen.Onboarding.route
+
+        navController.navigate(destination) {
             popUpTo(Screen.Splash.route) { inclusive = true }
         }
     }

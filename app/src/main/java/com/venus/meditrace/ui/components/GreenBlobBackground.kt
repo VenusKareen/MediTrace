@@ -10,6 +10,14 @@ import androidx.compose.ui.geometry.Offset
 import com.venus.meditrace.ui.theme.MediBlobGreen
 import com.venus.meditrace.ui.theme.MediMedGreen
 
+/**
+ * Full-screen background with three soft circular blobs drawn on a solid
+ * [MediMedGreen] canvas.
+ *
+ * No changes required for production — the composable is stateless and
+ * purely decorative. Blob positions are expressed as fractions of the
+ * canvas size so they scale to any screen without modification.
+ */
 @Composable
 fun GreenBlobBackground(
     modifier: Modifier = Modifier,

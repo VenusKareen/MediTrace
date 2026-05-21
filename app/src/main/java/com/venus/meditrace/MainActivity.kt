@@ -12,6 +12,15 @@ import com.venus.meditrace.ui.navigation.MediTraceNavGraph
 import com.venus.meditrace.ui.theme.MediMedGreen
 import com.venus.meditrace.ui.theme.MediTraceTheme
 
+/**
+ * Single-activity host for the Compose navigation graph.
+ *
+ * No changes to structure required for production; the activity is
+ * intentionally thin — all logic lives in ViewModels and the nav graph.
+ *
+ * Edge-to-edge is enabled so status-bar padding is handled by
+ * [MediTraceTopBar.statusBarsPadding] rather than by the window insets.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,8 +31,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color    = MediMedGreen
                 ) {
-                    val navController = rememberNavController()
-                    MediTraceNavGraph(navController = navController)
+                    MediTraceNavGraph(navController = rememberNavController())
                 }
             }
         }

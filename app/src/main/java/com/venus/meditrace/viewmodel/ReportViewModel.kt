@@ -11,10 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 data class ReportUiState(
-    val isLoading: Boolean    = false,
-    val isSuccess: Boolean    = false,
+    val isLoading:    Boolean = false,
+    val isSuccess:    Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -26,25 +27,37 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
 
     fun submitReport(
-        pharmacyName: String,
-        location: String,
+        pharmacyName:   String,
+        location:       String,
         medicationName: String,
-        batchId: String? = null
+        batchId:        String? = null
     ) {
+        // Client-side validation mirrors the backend
         if (pharmacyName.isBlank() || location.isBlank() || medicationName.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Please fill in all fields.") }
             return
         }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            when (val result = repo.reportProduct(pharmacyName, location, medicationName, batchId)) {
+
+            when (val result = repo.reportProduct(
+                pharmacyName   = pharmacyName.trim(),
+                location       = location.trim(),
+                medicationName = medicationName.trim(),
+                batchId        = batchId
+            )) {
                 is Resource.Success -> {
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 }
                 is Resource.Error -> {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                    Timber.e("Report submission failed [${result.code}]: ${result.message}")
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = result.message)
+                    }
                 }
-                Resource.Loading -> Unit
+                is Resource.Loading -> Unit
+                is Resource.Idle    -> Unit
             }
         }
     }
