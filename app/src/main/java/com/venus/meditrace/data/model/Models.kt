@@ -11,33 +11,99 @@ import kotlinx.parcelize.Parcelize
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Returned by GET /verify/{batchId}?sig=...
+ * Unified model for both API responses:
  *
- * Made Parcelable so it can be passed directly through the navigation
- * back-stack without requiring a shared ViewModel.
+ * 1. GET verify/{batchId}?sig={sig}
+ *    { success, result, message, batch: { batch_number, product_name, ... } }
+ *
+ * 2. GET products/{batchId}
+ *    { success, product: { batch_number, product_name, ... } }
+ *
+ * Call .flatten() after parsing to get a consistent display-ready object.
  */
 @Parcelize
 data class VerificationResult(
-    @SerializedName("status")            val status: String,
-    @SerializedName("product_name")      val productName: String?,
-    @SerializedName("manufacturer")      val manufacturer: String?,
-    @SerializedName("retailer")          val retailer: String?,
-    @SerializedName("store_location")    val storeLocation: String?,
-    @SerializedName("product_id")        val productId: String?,
-    @SerializedName("batch_number")      val batchNumber: String?,
-    @SerializedName("active_ingredient") val activeIngredient: String?,
-    @SerializedName("strength")          val strength: String?,
-    @SerializedName("expiry_date")       val expiryDate: String?,
-    @SerializedName("ppb_reg_number")    val ppbRegNumber: String?,
-    @SerializedName("message")           val message: String?
+    // verify endpoint: "result" = "valid" / "expired" / "counterfeit"
+    @SerializedName("result")            val status:           String?     = null,
+    @SerializedName("message")           val message:          String?     = null,
+
+    // verify endpoint wraps data in "batch"
+    @SerializedName("batch")             val batch:            BatchInfo?  = null,
+
+    // products endpoint wraps data in "product"
+    @SerializedName("product")           val product:          ProductInfo? = null,
+
+    // flat fields (present in some responses directly)
+    @SerializedName("product_name")      val productName:      String?     = null,
+    @SerializedName("active_ingredient") val activeIngredient: String?     = null,
+    @SerializedName("strength")          val strength:         String?     = null,
+    @SerializedName("manufacturer_name") val manufacturer:     String?     = null,
+    @SerializedName("ppb_reg_number")    val ppbRegNumber:     String?     = null,
+    @SerializedName("retailer")          val retailer:         String?     = null,
+    @SerializedName("store_location")    val storeLocation:    String?     = null,
+    @SerializedName("expiry_date")       val expiryDate:       String?     = null,
+    @SerializedName("product_id")        val productId:        String?     = null,
+    @SerializedName("batch_number")      val batchNumber:      String?     = null,
+) : Parcelable {
+
+    /**
+     * Normalises both API response shapes into a flat display-ready object.
+     * Always call this in the repository before returning to the ViewModel.
+     */
+    fun flatten(): VerificationResult {
+        val b = batch
+        val p = product
+        return VerificationResult(
+            status          = status          ?: if (p != null) "valid" else null,
+            message         = message,
+            productName     = productName     ?: b?.productName     ?: p?.productName,
+            activeIngredient= activeIngredient?: b?.activeIngredient?: p?.activeIngredient,
+            strength        = strength        ?: b?.strength        ?: p?.strength,
+            manufacturer    = manufacturer    ?: b?.manufacturer    ?: p?.manufacturer,
+            ppbRegNumber    = ppbRegNumber    ?: b?.ppbRegNumber    ?: p?.ppbRegNumber,
+            retailer        = retailer        ?: b?.retailer        ?: p?.retailer,
+            storeLocation   = storeLocation   ?: b?.storeLocation   ?: p?.storeLocation,
+            expiryDate      = expiryDate      ?: b?.expiryDate      ?: p?.expiryDate,
+            productId       = productId       ?: b?.productId       ?: p?.productId,
+            batchNumber     = batchNumber     ?: b?.batchNumber     ?: p?.batchNumber,
+        )
+    }
+}
+
+@Parcelize
+data class BatchInfo(
+    @SerializedName("batch_number")      val batchNumber:      String? = null,
+    @SerializedName("product_name")      val productName:      String? = null,
+    @SerializedName("active_ingredient") val activeIngredient: String? = null,
+    @SerializedName("strength")          val strength:         String? = null,
+    @SerializedName("manufacturer_name") val manufacturer:     String? = null,
+    @SerializedName("ppb_reg_number")    val ppbRegNumber:     String? = null,
+    @SerializedName("retailer")          val retailer:         String? = null,
+    @SerializedName("store_location")    val storeLocation:    String? = null,
+    @SerializedName("expiry_date")       val expiryDate:       String? = null,
+    @SerializedName("product_id")        val productId:        String? = null,
+) : Parcelable
+
+@Parcelize
+data class ProductInfo(
+    @SerializedName("batch_number")      val batchNumber:      String? = null,
+    @SerializedName("product_name")      val productName:      String? = null,
+    @SerializedName("active_ingredient") val activeIngredient: String? = null,
+    @SerializedName("strength")          val strength:         String? = null,
+    @SerializedName("manufacturer")      val manufacturer:     String? = null,
+    @SerializedName("ppb_reg_number")    val ppbRegNumber:     String? = null,
+    @SerializedName("retailer")          val retailer:         String? = null,
+    @SerializedName("store_location")    val storeLocation:    String? = null,
+    @SerializedName("expiry_date")       val expiryDate:       String? = null,
+    @SerializedName("product_id")        val productId:        String? = null,
 ) : Parcelable
 
 /** Body for POST /report */
 data class ReportRequest(
-    @SerializedName("pharmacy_name")   val pharmacyName: String,
-    @SerializedName("location")        val location: String,
+    @SerializedName("pharmacy_name")   val pharmacyName:   String,
+    @SerializedName("location")        val location:       String,
     @SerializedName("medication_name") val medicationName: String,
-    @SerializedName("batch_id")        val batchId: String? = null
+    @SerializedName("batch_id")        val batchId:        String? = null
 )
 
 /** Generic API acknowledgement */
@@ -50,19 +116,12 @@ data class GenericResponse(
 // Local persistence model (Room)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Persisted scan-history record stored in the local Room database.
- *
- * [id] uses auto-generation so inserts never require a caller-supplied key.
- * [timestampMillis] stores epoch-millis for reliable sorting; format for
- * display in the UI layer, not here.
- */
 @Entity(tableName = "scan_history")
 data class ScanHistoryItem(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val productName: String,
-    val storeLocation: String,
-    val status: String,
-    val timestampMillis: Long = System.currentTimeMillis(),
-    val batchId: String
+    val productName:    String,
+    val storeLocation:  String,
+    val status:         String,
+    val timestampMillis:Long = System.currentTimeMillis(),
+    val batchId:        String
 )

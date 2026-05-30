@@ -43,7 +43,7 @@ import java.util.concurrent.Executors
 @Composable
 fun ScanScreen(
     viewModel:  ScanViewModel,
-    onVerified: (batchId: String) -> Unit,   // now passes batchId to NavGraph
+    onVerified: (batchId: String) -> Unit,
     onNotFound: () -> Unit,
     onBack:     () -> Unit
 ) {
@@ -110,7 +110,8 @@ fun ScanScreen(
             contentAlignment = Alignment.Center
         ) {
             if (cameraPermission.status.isGranted) {
-                CameraPreview(onQrDetected = { viewModel.onQrDetected(it) })
+                // FIX 1: was viewModel.onQrDetected(it) → now viewModel.onQrCodeScanned(it)
+                CameraPreview(onQrDetected = { viewModel.onQrCodeScanned(it) })
                 Box(
                     modifier = Modifier
                         .size(175.dp)
@@ -176,8 +177,10 @@ fun ScanScreen(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.setMockResult(
-                                VerificationResult(
+                            // FIX 2: was viewModel.setMockResult(VerificationResult(...))
+                            //        now viewModel.simulateVerified(result, batchId)
+                            viewModel.simulateVerified(
+                                result = VerificationResult(
                                     status           = "VALID",
                                     productName      = "Amoxicillin 500mg",
                                     manufacturer     = "PharmaCo Kenya Ltd.",
@@ -190,7 +193,8 @@ fun ScanScreen(
                                     expiryDate       = "2027-06-30",
                                     ppbRegNumber     = "PPB/NOM/2021/001",
                                     message          = null
-                                )
+                                ),
+                                batchId = "AMX-B001-2025"
                             )
                         },
                         colors   = ButtonDefaults.buttonColors(containerColor = MediAccentGreen),
@@ -199,7 +203,8 @@ fun ScanScreen(
                     ) { Text("✓ Valid", color = White, fontSize = 12.sp) }
 
                     Button(
-                        onClick  = { viewModel.setNotFound() },
+                        // FIX 3: was viewModel.setNotFound() → now viewModel.simulateNotFound()
+                        onClick  = { viewModel.simulateNotFound() },
                         colors   = ButtonDefaults.buttonColors(containerColor = ErrorRed),
                         shape    = RoundedCornerShape(8.dp),
                         modifier = Modifier.weight(1f).height(40.dp)

@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+// ── UI State ──────────────────────────────────────────────────────────────────
+
 sealed class ScanUiState {
     object Idle     : ScanUiState()
     object Scanning : ScanUiState()
@@ -23,6 +25,8 @@ sealed class ScanUiState {
     data class NotFound(val rawQr: String = "")                              : ScanUiState()
     data class Error(val message: String)                                    : ScanUiState()
 }
+
+// ── ViewModel ─────────────────────────────────────────────────────────────────
 
 class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,35 +37,51 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
 
     private var lastScannedQr: String? = null
 
+    // ── Scanning control ──────────────────────────────────────────────────────
+
     fun startScanning() {
+        lastScannedQr = null
         _uiState.update { ScanUiState.Scanning }
     }
 
-    /**
-     * Called by [QrCodeAnalyzer] when a real QR frame is decoded.
-     * Deduplicates back-to-back identical frames before hitting the network.
-     */
-    fun onQrDetected(rawQr: String) {
+    fun resetToIdle() {
+        lastScannedQr = null
+        _uiState.update { ScanUiState.Idle }
+    }
+
+    // ── QR decode → network verify ────────────────────────────────────────────
+
+    fun onQrCodeScanned(rawQr: String) {
         if (rawQr == lastScannedQr) return
         lastScannedQr = rawQr
 
         val parsed = repo.parseQrCode(rawQr)
         if (parsed == null) {
-            Timber.w("QR parse failed for: $rawQr")
+            Timber.w("onQrCodeScanned: invalid QR format — $rawQr")
             _uiState.update { ScanUiState.NotFound(rawQr) }
             return
         }
 
         val (batchId, signature) = parsed
+        verifyProduct(batchId, signature)
+    }
+
+    private fun verifyProduct(batchId: String, signature: String) {
         viewModelScope.launch {
             _uiState.update { ScanUiState.Loading }
-            when (val result = repo.verifyProduct(batchId, signature)) {
-                is Resource.Success -> {
-                    _uiState.update { ScanUiState.Verified(result.data, batchId) }
+
+            when (val result = repo.verifyProduct(batchId = batchId, signature = signature)) {
+                is Resource.Success<*> -> {
+                    Timber.d("verifyProduct: success for batchId=$batchId")
+                    _uiState.update { ScanUiState.Verified(result.data as VerificationResult, batchId) }
                 }
                 is Resource.Error -> {
-                    Timber.e("Verification failed [${result.code}]: ${result.message}")
-                    _uiState.update { ScanUiState.NotFound(rawQr) }
+                    Timber.e("verifyProduct: failed [${result.code}] — ${result.message}")
+                    if (result.code == 404) {
+                        _uiState.update { ScanUiState.NotFound(batchId) }
+                    } else {
+                        _uiState.update { ScanUiState.Error(result.message ?: "Verification failed.") }
+                    }
                 }
                 is Resource.Loading -> Unit
                 is Resource.Idle    -> Unit
@@ -69,22 +89,48 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun reset() {
-        lastScannedQr = null
-        _uiState.update { ScanUiState.Idle }
+    // ── History detail lookup ─────────────────────────────────────────────────
+
+    /**
+     * Fetches a product by batchId for the history detail screen.
+     * Uses GET products/{batchId} — no signature required.
+     * Skips the network call if this product is already loaded.
+     */
+    fun fetchByBatchId(batchId: String) {
+        val current = _uiState.value
+        if (current is ScanUiState.Verified && current.batchId == batchId) return
+
+        viewModelScope.launch {
+            _uiState.update { ScanUiState.Loading }
+
+            when (val result = repo.getProductByBatchId(batchId)) {
+                is Resource.Success<*> -> {
+                    Timber.d("fetchByBatchId: success for batchId=$batchId")
+                    _uiState.update { ScanUiState.Verified(result.data as VerificationResult, batchId) }
+                }
+                is Resource.Error -> {
+                    Timber.e("fetchByBatchId: failed [${result.code}] — ${result.message}")
+                    if (result.code == 404) {
+                        _uiState.update { ScanUiState.NotFound(batchId) }
+                    } else {
+                        _uiState.update { ScanUiState.Error(result.message ?: "Could not load product.") }
+                    }
+                }
+                is Resource.Loading -> Unit
+                is Resource.Idle    -> Unit
+            }
+        }
     }
 
-    // ── Debug/demo helpers — compiled out in release builds ───────────────
+    // ── Debug helpers (debug builds only) ────────────────────────────────────
 
-    /** Simulates a successful VALID scan. Only available in debug builds. */
-    fun setMockResult(result: VerificationResult) {
-        check(BuildConfig.DEBUG) { "setMockResult is only available in debug builds" }
-        _uiState.update { ScanUiState.Verified(result, batchId = "DEMO-BATCH") }
+    fun simulateVerified(result: VerificationResult, batchId: String) {
+        check(BuildConfig.DEBUG) { "simulateVerified is only available in debug builds" }
+        _uiState.update { ScanUiState.Verified(result, batchId) }
     }
 
-    /** Simulates a NOT FOUND result. Only available in debug builds. */
-    fun setNotFound() {
-        check(BuildConfig.DEBUG) { "setNotFound is only available in debug builds" }
+    fun simulateNotFound() {
+        check(BuildConfig.DEBUG) { "simulateNotFound is only available in debug builds" }
         _uiState.update { ScanUiState.NotFound("DEMO-QR") }
     }
 }

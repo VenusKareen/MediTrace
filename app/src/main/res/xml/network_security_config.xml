@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Network Security Configuration
-    ================================
-    This file replaces the blanket android:usesCleartextTraffic="true" that
-    was present in the prototype manifest.
-
-    PRODUCTION rule: HTTPS only — no cleartext permitted to any domain.
-
-    LOCAL DEVELOPMENT: Uncomment the <domain-config> block below and replace
-    the placeholder IP/hostname with your dev machine's address. This allows
-    cleartext to the emulator host or a LAN IP without weakening the release
-    build.
-
-    Reference: https://developer.android.com/training/articles/security-config
--->
 <network-security-config>
 
     <!-- ── Release: HTTPS only, system CAs trusted ───────────────────── -->
@@ -23,12 +8,9 @@
         </trust-anchors>
     </base-config>
 
-    <!--
-    ── Development only (uncomment when testing against a local backend) ──
+    <!-- ── Development only: allow cleartext to emulator host ─────────── -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">10.0.2.2</domain>
-        <domain includeSubdomains="false">192.168.1.100</domain>
     </domain-config>
-    -->
 
 </network-security-config>

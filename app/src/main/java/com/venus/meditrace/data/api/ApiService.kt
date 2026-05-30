@@ -10,14 +10,22 @@ interface ApiService {
 
     /**
      * Verify a scanned product.
-     *
-     * @param batchId   The batch identifier extracted from the QR code path.
-     * @param signature The HMAC-SHA256 signature from the QR code query param.
+     * GET verify/{batchId}?sig={signature}
      */
     @GET("verify/{batchId}")
     suspend fun verifyProduct(
-        @Path("batchId") batchId: String,
+        @Path("batchId") batchId:   String,
         @Query("sig")    signature: String
+    ): Response<VerificationResult>
+
+    /**
+     * Fetch a product by batchId only — no signature required.
+     * Used by the history detail screen.
+     * GET products/{batchId}
+     */
+    @GET("products/{batchId}")
+    suspend fun getProductByBatchId(
+        @Path("batchId") batchId: String
     ): Response<VerificationResult>
 
     /**
