@@ -1,126 +1,83 @@
 package com.venus.meditrace.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
-import com.venus.meditrace.ui.screens.about.AboutScreen
-import com.venus.meditrace.ui.screens.history.ScanHistoryScreen
-import com.venus.meditrace.ui.screens.home.HomeScreen
-import com.venus.meditrace.ui.screens.onboarding.OnboardingScreen
-import com.venus.meditrace.ui.screens.report.ReportProductScreen
-import com.venus.meditrace.ui.screens.result.ProductDetailsScreen
-import com.venus.meditrace.ui.screens.result.ProductNotFoundScreen
-import com.venus.meditrace.ui.screens.scan.ScanScreen
-import com.venus.meditrace.ui.screens.splash.SplashScreen
-import com.venus.meditrace.viewmodel.ReportViewModel
-import com.venus.meditrace.viewmodel.ScanViewModel
+import com.venus.meditrace.data.local.TokenManager
+import com.venus.meditrace.data.remote.RetrofitClient
+import com.venus.meditrace.data.repository.AuthRepository
+import com.venus.meditrace.ui.auth.AuthViewModel
+import com.venus.meditrace.ui.auth.LoginScreen
+import com.venus.meditrace.ui.auth.RegisterScreen
+
+object Routes {
+    const val LOGIN    = "login"
+    const val REGISTER = "register"
+    const val HOME     = "home"
+}
 
 @Composable
-fun MediTraceNavGraph(navController: NavHostController) {
+fun MediTraceNavGraph(
+    navController: NavHostController,
+    tokenManager: TokenManager
+) {
+    var startDestination by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        startDestination = if (tokenManager.isLoggedIn()) Routes.HOME else Routes.LOGIN
+    }
+
+    if (startDestination == null) return
+
+    val repository = AuthRepository(RetrofitClient.create(tokenManager), tokenManager)
+    val authViewModel: AuthViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return AuthViewModel(repository) as T
+            }
+        }
+    )
 
     NavHost(
         navController    = navController,
-        startDestination = Screen.Splash.route
+        startDestination = startDestination!!
     ) {
-
-        // ── Splash ────────────────────────────────────────────────────────
-        composable(Screen.Splash.route) {
-            SplashScreen(navController = navController)
-        }
-
-        // ── Onboarding ────────────────────────────────────────────────────
-        composable(Screen.Onboarding.route) {
-            OnboardingScreen(
-                onFinished = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                viewModel            = authViewModel,
+                onNavigateToRegister = { navController.navigate(Routes.REGISTER) },
+                onLoginSuccess       = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
 
-        // ── Home ──────────────────────────────────────────────────────────
-        composable(Screen.Home.route) {
-            HomeScreen(
-                navController = navController,
-                onScanClick   = { navController.navigate(Screen.Scan.route) }
-            )
-        }
-
-        // ── Scan ──────────────────────────────────────────────────────────
-        composable(Screen.Scan.route) {
-            val scanViewModel: ScanViewModel = viewModel()
-            ScanScreen(
-                viewModel  = scanViewModel,
-                onVerified = { batchId ->
-                    navController.navigate(Screen.ProductDetails.createRoute(batchId))
-                },
-                onNotFound = { navController.navigate(Screen.ProductNotFound.route) },
-                onBack     = { navController.popBackStack() }
-            )
-        }
-
-        // ── Product Details ───────────────────────────────────────────────
-        composable(
-            route     = Screen.ProductDetails.route,
-            arguments = listOf(
-                navArgument(Screen.ProductDetails.ARG_BATCH_ID) {
-                    type = NavType.StringType
-                }
-            )
-        ) { backStackEntry ->
-            val batchId = backStackEntry.arguments
-                ?.getString(Screen.ProductDetails.ARG_BATCH_ID)
-                ?: return@composable
-
-            val scanViewModel: ScanViewModel = viewModel()
-            ProductDetailsScreen(
-                viewModel = scanViewModel,
-                batchId   = batchId,
-                onBack    = { navController.popBackStack() }
-            )
-        }
-
-        // ── Product Not Found ─────────────────────────────────────────────
-        composable(Screen.ProductNotFound.route) {
-            ProductNotFoundScreen(
-                onReportCounterfeit = {
-                    navController.navigate(Screen.ReportProduct.route)
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // ── Report Product ────────────────────────────────────────────────
-        composable(Screen.ReportProduct.route) {
-            val reportViewModel: ReportViewModel = viewModel()
-            ReportProductScreen(
-                viewModel = reportViewModel,
-                onBack    = { navController.popBackStack() },
-                onSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = false }
+        composable(Routes.REGISTER) {
+            RegisterScreen(
+                viewModel         = authViewModel,
+                onNavigateToLogin = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
 
-        // ── Scan History ──────────────────────────────────────────────────
-        composable(Screen.ScanHistory.route) {
-            ScanHistoryScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // ── About ─────────────────────────────────────────────────────────
-        composable(Screen.About.route) {
-            AboutScreen(
-                onBack = { navController.popBackStack() }
-            )
+        composable(Routes.HOME) {
+            // Your existing HomeScreen goes here
         }
     }
 }
