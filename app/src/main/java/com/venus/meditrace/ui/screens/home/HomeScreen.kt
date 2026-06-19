@@ -59,7 +59,9 @@ private val sampleHistory = listOf(
 @Composable
 fun HomeScreen(
     navController: NavController,
-    onScanClick:   () -> Unit
+    onScanClick:   () -> Unit,
+    isLoggedIn:    Boolean = false,
+    onLoginClick:  () -> Unit = {}
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope       = rememberCoroutineScope()
@@ -124,6 +126,32 @@ fun HomeScreen(
                 DrawerItem(Icons.Default.Info, "About") {
                     scope.launch { drawerState.close() }
                     navController.navigate(Screen.About.route)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = WhiteAlpha40, thickness = 0.5.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // ── Pharmacist sign-in entry point ────────────────────────
+                if (isLoggedIn) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.VerifiedUser,
+                            contentDescription = null,
+                            tint               = MediAccentGreen,
+                            modifier           = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Signed in as Pharmacist", color = WhiteAlpha70, fontSize = 13.sp)
+                    }
+                } else {
+                    DrawerItem(Icons.Default.Login, "Pharmacist Sign In") {
+                        scope.launch { drawerState.close() }
+                        onLoginClick()
+                    }
                 }
             }
         }

@@ -1,11 +1,7 @@
 package com.venus.meditrace.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -24,10 +20,13 @@ import com.venus.meditrace.ui.auth.RegisterScreen
 import com.venus.meditrace.ui.screens.about.AboutScreen
 import com.venus.meditrace.ui.screens.history.ScanHistoryScreen
 import com.venus.meditrace.ui.screens.home.HomeScreen
+import com.venus.meditrace.ui.screens.onboarding.OnboardingScreen
 import com.venus.meditrace.ui.screens.report.ReportProductScreen
 import com.venus.meditrace.ui.screens.result.ProductDetailsScreen
 import com.venus.meditrace.ui.screens.result.ProductNotFoundScreen
 import com.venus.meditrace.ui.screens.scan.ScanScreen
+import com.venus.meditrace.util.Constants
+import com.venus.meditrace.util.SecurePrefs
 import com.venus.meditrace.viewmodel.ReportViewModel
 import com.venus.meditrace.viewmodel.ScanViewModel
 
@@ -42,16 +41,16 @@ fun MediTraceNavGraph(
     tokenManager:  TokenManager
 ) {
     val context = LocalContext.current
-    var startDestination by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        startDestination = if (tokenManager.isLoggedIn()) Screen.Home.route else AuthRoutes.LOGIN
+    // First launch ever -> show Onboarding once.
+    // Every launch after that -> go straight to Home, no login required.
+    // Login is never a forced starting point — only reached if the user
+    // chooses to sign in (pharmacist flow) from inside Home.
+    val onboardingDone = remember {
+        SecurePrefs.getBoolean(context, Constants.KEY_ONBOARDING_DONE, false)
     }
+    val startDestination = if (onboardingDone) Screen.Home.route else Screen.Onboarding.route
 
-    if (startDestination == null) return
-
-    // Auth repo needs context to sync access token into SecurePrefs
-    // so RetrofitClient.apiService interceptor can attach Bearer header
     val authRepository = remember {
         AuthRepository(
             api          = RetrofitClient.create(tokenManager),
@@ -69,14 +68,25 @@ fun MediTraceNavGraph(
         }
     )
 
-    // AndroidViewModels — created automatically with application context
     val scanViewModel:   ScanViewModel   = viewModel()
     val reportViewModel: ReportViewModel = viewModel()
 
     NavHost(
         navController    = navController,
-        startDestination = startDestination!!
+        startDestination = startDestination
     ) {
+
+        // ── Onboarding ────────────────────────────────────────────────────
+
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onFinished = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         // ── Auth ──────────────────────────────────────────────────────────
 
@@ -112,7 +122,9 @@ fun MediTraceNavGraph(
                 onScanClick   = {
                     scanViewModel.startScanning()
                     navController.navigate(Screen.Scan.route)
-                }
+                },
+                isLoggedIn   = tokenManager.isLoggedIn(),
+                onLoginClick = { navController.navigate(AuthRoutes.LOGIN) }
             )
         }
 
