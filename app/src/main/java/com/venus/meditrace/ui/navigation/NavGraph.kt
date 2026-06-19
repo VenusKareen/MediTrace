@@ -1,6 +1,8 @@
 package com.venus.meditrace.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -117,13 +119,17 @@ fun MediTraceNavGraph(
         // ── Home ──────────────────────────────────────────────────────────
 
         composable(Screen.Home.route) {
+            val isLoggedIn by produceState(initialValue = false, tokenManager) {
+                value = tokenManager.isLoggedIn()
+            }
+
             HomeScreen(
                 navController = navController,
                 onScanClick   = {
                     scanViewModel.startScanning()
                     navController.navigate(Screen.Scan.route)
                 },
-                isLoggedIn   = tokenManager.isLoggedIn(),
+                isLoggedIn   = isLoggedIn,
                 onLoginClick = { navController.navigate(AuthRoutes.LOGIN) }
             )
         }
