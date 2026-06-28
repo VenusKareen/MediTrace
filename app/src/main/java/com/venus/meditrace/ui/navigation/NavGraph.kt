@@ -78,7 +78,7 @@ fun MediTraceNavGraph(
         startDestination = startDestination
     ) {
 
-        // ── Onboarding ────────────────────────────────────────────────────
+        //Onboarding
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
@@ -90,7 +90,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Auth ──────────────────────────────────────────────────────────
+        //Auth
 
         composable(AuthRoutes.LOGIN) {
             LoginScreen(
@@ -116,7 +116,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Home ──────────────────────────────────────────────────────────
+        //Home
 
         composable(Screen.Home.route) {
             val isLoggedIn by produceState(initialValue = false, tokenManager) {
@@ -134,7 +134,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Scan ──────────────────────────────────────────────────────────
+        //Scan
 
         composable(Screen.Scan.route) {
             ScanScreen(
@@ -153,7 +153,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Product Details ───────────────────────────────────────────────
+        //Product Details
 
         composable(
             route     = Screen.ProductDetails.route,
@@ -172,7 +172,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Product Not Found ─────────────────────────────────────────────
+        //Product Not Found
 
         composable(Screen.ProductNotFound.route) {
             ProductNotFoundScreen(
@@ -181,7 +181,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Report Product ────────────────────────────────────────────────
+        //Report Product
 
         composable(Screen.ReportProduct.route) {
             ReportProductScreen(
@@ -191,7 +191,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── Scan History ──────────────────────────────────────────────────
+        //Scan History
 
         composable(Screen.ScanHistory.route) {
             ScanHistoryScreen(
@@ -199,7 +199,7 @@ fun MediTraceNavGraph(
             )
         }
 
-        // ── About ─────────────────────────────────────────────────────────
+        //About
 
         composable(Screen.About.route) {
             AboutScreen(

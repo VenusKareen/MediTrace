@@ -23,7 +23,12 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.100.41:3000/api/\"")
+        }
+        create("localPhone") {
+            isDebuggable = true
+            initWith(getByName("debug"))
+            buildConfigField("String", "BASE_URL", "\"http://192.168.100.41:3000/api/\"")
         }
         release {
             isMinifyEnabled   = true
@@ -32,7 +37,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://meditrace.ke/api/\"")
+            buildConfigField("String", "BASE_URL", "\"http://192.168.100.41:3000/api/\"")
         }
     }
 

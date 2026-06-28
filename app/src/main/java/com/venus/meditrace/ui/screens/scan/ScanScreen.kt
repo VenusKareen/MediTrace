@@ -30,8 +30,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.zxing.*
 import com.google.zxing.common.HybridBinarizer
-import com.venus.meditrace.BuildConfig
-import com.venus.meditrace.data.model.VerificationResult
 import com.venus.meditrace.ui.theme.*
 import com.venus.meditrace.viewmodel.ScanUiState
 import com.venus.meditrace.viewmodel.ScanViewModel
@@ -50,7 +48,6 @@ fun ScanScreen(
     val uiState          by viewModel.uiState.collectAsState()
     val cameraPermission = rememberPermissionState(android.Manifest.permission.CAMERA)
 
-    // React to terminal states and forward to NavGraph
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is ScanUiState.Verified -> onVerified(state.batchId)
@@ -72,7 +69,6 @@ fun ScanScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // ── Top bar ───────────────────────────────────────────────────────
         Row(
             modifier          = Modifier
                 .fillMaxWidth()
@@ -98,7 +94,6 @@ fun ScanScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ── Camera preview ────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .padding(horizontal = 28.dp)
@@ -110,7 +105,6 @@ fun ScanScreen(
             contentAlignment = Alignment.Center
         ) {
             if (cameraPermission.status.isGranted) {
-                // FIX 1: was viewModel.onQrDetected(it) → now viewModel.onQrCodeScanned(it)
                 CameraPreview(onQrDetected = { viewModel.onQrCodeScanned(it) })
                 Box(
                     modifier = Modifier
@@ -146,7 +140,6 @@ fun ScanScreen(
             modifier  = Modifier.padding(horizontal = 48.dp)
         )
 
-        // ── Loading indicator ─────────────────────────────────────────────
         if (uiState is ScanUiState.Loading) {
             Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator(color = MediDarkGreen)
@@ -155,63 +148,6 @@ fun ScanScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
-        // ── Demo buttons — DEBUG builds only ─────────────────────────────
-        if (BuildConfig.DEBUG) {
-            Column(
-                modifier            = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text      = "── Demo Navigation ──",
-                    color     = TextGray,
-                    fontSize  = 11.sp,
-                    textAlign = TextAlign.Center
-                )
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            // FIX 2: was viewModel.setMockResult(VerificationResult(...))
-                            //        now viewModel.simulateVerified(result, batchId)
-                            viewModel.simulateVerified(
-                                result = VerificationResult(
-                                    status           = "VALID",
-                                    productName      = "Amoxicillin 500mg",
-                                    manufacturer     = "PharmaCo Kenya Ltd.",
-                                    retailer         = "Nairobi Pharmacy",
-                                    storeLocation    = "Westlands, Nairobi",
-                                    productId        = "PC-AMX-001",
-                                    batchNumber      = "AMX-B001-2025",
-                                    activeIngredient = "Amoxicillin Trihydrate",
-                                    strength         = "500mg",
-                                    expiryDate       = "2027-06-30",
-                                    ppbRegNumber     = "PPB/NOM/2021/001",
-                                    message          = null
-                                ),
-                                batchId = "AMX-B001-2025"
-                            )
-                        },
-                        colors   = ButtonDefaults.buttonColors(containerColor = MediAccentGreen),
-                        shape    = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f).height(40.dp)
-                    ) { Text("✓ Valid", color = White, fontSize = 12.sp) }
-
-                    Button(
-                        // FIX 3: was viewModel.setNotFound() → now viewModel.simulateNotFound()
-                        onClick  = { viewModel.simulateNotFound() },
-                        colors   = ButtonDefaults.buttonColors(containerColor = ErrorRed),
-                        shape    = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f).height(40.dp)
-                    ) { Text("✗ Not Found", color = White, fontSize = 12.sp) }
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -232,8 +168,6 @@ fun ScanScreen(
         }
     }
 }
-
-// ── Camera preview ────────────────────────────────────────────────────────
 
 @Composable
 private fun CameraPreview(onQrDetected: (String) -> Unit) {
@@ -274,8 +208,6 @@ private fun CameraPreview(onQrDetected: (String) -> Unit) {
     )
 }
 
-// ── ZXing QR analyzer ─────────────────────────────────────────────────────
-
 private class QrCodeAnalyzer(
     private val onQrDetected: (String) -> Unit
 ) : ImageAnalysis.Analyzer {
@@ -293,7 +225,6 @@ private class QrCodeAnalyzer(
         try {
             onQrDetected(reader.decode(BinaryBitmap(HybridBinarizer(source))).text)
         } catch (_: NotFoundException) {
-            // No QR in this frame — expected, continue
         } finally {
             image.close()
         }
